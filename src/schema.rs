@@ -1,9 +1,10 @@
 table! {
-    user (id) {
+    pipe_users (id) {
         id -> Integer,
-        user_login -> Varchar,
-        user_pass -> Varchar,
+        user_name -> Varchar,
+        user_password -> Varchar,
         user_email -> Varchar,
-        user_registered -> Datetime,
+        user_registered_time -> Datetime,
+        user_recently_login_time -> Datetime,
     }
 }
