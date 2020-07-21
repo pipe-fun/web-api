@@ -1,5 +1,5 @@
-use crate::user::user::User;
-use crate::status::db_api::DBApiStatus;
+use crate::status::db_api::DbAPIStatus;
+use crate::user::user_struct::User;
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Data {
@@ -17,49 +17,49 @@ impl Data {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
-pub enum _Status {
+pub enum _LoginStatus {
     LoginSuccessfully,
     UserNameOrPasswordWrong,
-    DBApiError,
+    DbAPIError,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Status {
+pub struct LoginStatus {
     status_code: u8,
-    login_status: _Status,
-    db_api_status: DBApiStatus,
+    login_status: _LoginStatus,
+    db_api_status: DbAPIStatus,
     data: Data,
 }
 
-impl Default for Status {
+impl Default for LoginStatus {
     fn default() -> Self {
-        Status {
+        LoginStatus {
             status_code: 0,
-            login_status: _Status::LoginSuccessfully,
-            db_api_status: DBApiStatus::default(),
+            login_status: _LoginStatus::LoginSuccessfully,
+            db_api_status: DbAPIStatus::default(),
             data: Data::default()
         }
     }
 }
 
-impl Status {
-    pub fn set_login_status(self, status: _Status) -> Self {
-        Status {
+impl LoginStatus {
+    pub fn set_login_status(self, status: _LoginStatus) -> Self {
+        LoginStatus {
             status_code: status as u8,
             login_status: status,
             ..self
         }
     }
 
-    pub fn set_db_api_status(self, status: DBApiStatus) -> Self {
-        Status {
+    pub fn set_db_api_status(self, status: DbAPIStatus) -> Self {
+        LoginStatus {
             db_api_status: status,
             ..self
         }
     }
 
     pub fn set_data(self, data: Data) -> Self {
-        Status {
+        LoginStatus {
             data,
             ..self
         }

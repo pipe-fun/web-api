@@ -1,28 +1,28 @@
-#[derive(Serialize, Deserialize)]
-pub enum _DBApiStatus {
+#[derive(Serialize, Deserialize, Eq, PartialEq)]
+pub enum _DbAPIStatus {
     Ok,
     ConnectRefused,
     DataError,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct DBApiStatus {
-    status: _DBApiStatus,
+#[derive(Serialize, Deserialize, Eq, PartialEq)]
+pub struct DbAPIStatus {
+    status: _DbAPIStatus,
     message: String,
 }
 
-impl Default for DBApiStatus {
+impl Default for DbAPIStatus {
     fn default() -> Self {
-        DBApiStatus {
-            status: _DBApiStatus::Ok,
+        DbAPIStatus {
+            status: _DbAPIStatus::Ok,
             message: "db api is fine".into(),
         }
     }
 }
 
-impl DBApiStatus {
-    pub fn new(status: _DBApiStatus, message: String) -> Self {
-        DBApiStatus {
+impl DbAPIStatus {
+    pub fn new(status: _DbAPIStatus, message: String) -> Self {
+        DbAPIStatus {
             status,
             message,
         }

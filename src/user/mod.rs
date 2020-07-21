@@ -1,2 +1,4 @@
 pub mod login;
-pub mod user;
+pub mod register;
+pub mod tools;
+pub mod user_struct;

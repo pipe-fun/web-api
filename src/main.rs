@@ -9,12 +9,13 @@ mod status;
 use rocket::Config;
 use rocket::config::Environment;
 use crate::user::login::static_rocket_route_info_for_login;
+use crate::user::register::static_rocket_route_info_for_register;
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
     config.set_port(8080);
     rocket::custom(config)
-        .mount("/user", routes![login])
+        .mount("/user", routes![login, register])
 }
 
 fn main() {

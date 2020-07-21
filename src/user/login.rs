@@ -1,8 +1,7 @@
 use rocket_contrib::json::Json;
-use crate::user::user::User;
-use crate::status::login::{Status, _Status, Data};
-use crate::status::db_api::{DBApiStatus, _DBApiStatus};
-
+use crate::user::tools;
+use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
+use crate::user::user_struct::User;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {
@@ -18,28 +17,21 @@ impl LoginInfo {
 }
 
 #[post("/login", format = "json", data = "<info>")]
-pub fn login(info: Json<LoginInfo>) -> Json<Status> {
-    let set_db_api_err = |status: _DBApiStatus, e: String| {
-        Status::default().set_login_status(_Status::DBApiError).
-            set_db_api_status(DBApiStatus::new(status, e))
-    };
-
-    let login_op = |users: Vec<User>| {
+pub fn login(info: Json<LoginInfo>) -> Json<LoginStatus> {
+    let op = |users: Vec<User>| -> LoginStatus {
         if let Some(u) = users.iter().find(|&u| info.equal(u)) {
-            Status::default().set_data(Data::new(u))
+            LoginStatus::default().set_data(Data::new(u))
         } else {
-            Status::default().set_login_status(_Status::UserNameOrPasswordWrong)
+            LoginStatus::default().set_login_status(_LoginStatus::UserNameOrPasswordWrong)
         }
     };
 
-    let status = match reqwest::blocking::get("http://localhost:1122/db/user/read") {
-        Ok(response) => {
-            match response.json::<Vec<User>>() {
-                Ok(users) => { login_op(users) }
-                Err(e) => { set_db_api_err(_DBApiStatus::DataError, e.to_string()) }
-            }
+    let status = match tools::read_users() {
+        Ok(u) => { op(u) }
+        Err(e) => {
+            LoginStatus::default().set_login_status(_LoginStatus::DbAPIError).
+                set_db_api_status(e)
         }
-        Err(e) => { set_db_api_err(_DBApiStatus::ConnectRefused, e.to_string()) }
     };
 
     Json(status)
