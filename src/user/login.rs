@@ -1,6 +1,7 @@
 use rocket_contrib::json::Json;
-use rocket::local::Client;
-use crate::db::user::User;
+use crate::user::user::User;
+use crate::status::login::{Status, _Status, Data};
+use crate::status::db_api::{DBApiStatus, _DBApiStatus};
 
 
 #[derive(Serialize, Deserialize)]
@@ -12,67 +13,34 @@ pub struct LoginInfo {
 impl LoginInfo {
     fn equal(&self, user: &User) -> bool {
         user.user_name.eq(&self.user_name)
-        && user.user_password.eq(&self.user_password)
-    }
-}
-
-#[derive(Serialize, Deserialize, Default)]
-pub struct Data {
-    id: i32,
-    user_name: String
-}
-
-impl Data {
-    pub fn new(user: &User) -> Data {
-        Data {
-            id: user.id,
-            user_name: user.user_name.clone()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum _Status {
-    LoginSuccessfully,
-    UserNameOrPasswordWrong
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Status {
-    message: String,
-    data: Data
-}
-
-impl Status {
-    pub fn new(message: _Status, data: Data) -> Status {
-        let message = match message {
-            _Status::LoginSuccessfully => {
-                format!("login successfully")
-            }
-            _Status::UserNameOrPasswordWrong => {
-                format!("user name or password wrong")
-            }
-        };
-
-        Status {
-            message,
-            data
-        }
+            && user.user_password.eq(&self.user_password)
     }
 }
 
 #[post("/login", format = "json", data = "<info>")]
-pub fn login(info: Json<LoginInfo>) -> Result<Json<Status>, String> {
-    let uri = "/db/user/read";
-    let client = Client::new(crate::rocket_db()).unwrap();
-    let response = client.get(uri).dispatch().body_string().unwrap();
-
-    let users: Vec<User> = serde_json::from_str(&response).unwrap();
-    let status = if let Some(u) = users.iter().find(|&u| info.equal(u)) {
-        Status::new(_Status::LoginSuccessfully, Data::new(u))
-    } else {
-        Status::new(_Status::UserNameOrPasswordWrong, Data::default())
+pub fn login(info: Json<LoginInfo>) -> Json<Status> {
+    let set_db_api_err = |status: _DBApiStatus, e: String| {
+        Status::default().set_login_status(_Status::DBApiError).
+            set_db_api_status(DBApiStatus::new(status, e))
     };
 
-    Ok(Json(status))
+    let login_op = |users: Vec<User>| {
+        if let Some(u) = users.iter().find(|&u| info.equal(u)) {
+            Status::default().set_data(Data::new(u))
+        } else {
+            Status::default().set_login_status(_Status::UserNameOrPasswordWrong)
+        }
+    };
+
+    let status = match reqwest::blocking::get("http://localhost:1122/db/user/read") {
+        Ok(response) => {
+            match response.json::<Vec<User>>() {
+                Ok(users) => { login_op(users) }
+                Err(e) => { set_db_api_err(_DBApiStatus::DataError, e.to_string()) }
+            }
+        }
+        Err(e) => { set_db_api_err(_DBApiStatus::ConnectRefused, e.to_string()) }
+    };
+
+    Json(status)
 }
