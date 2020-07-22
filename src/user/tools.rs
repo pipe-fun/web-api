@@ -1,11 +1,17 @@
-use argon2::{self, Config};
 use rand::Rng;
+use argon2::{self, Config, ThreadMode};
 use crate::user::user_struct::User;
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 
 pub fn hash(password: &str) -> String {
+    let cpus = num_cpus::get();
     let salt = rand::thread_rng().gen::<[u8; 32]>();
-    let config = Config::default();
+    let mut config = Config::default();
+    config.time_cost = 1;
+    if cpus > 1 {
+        config.lanes = cpus as u32;
+        config.thread_mode = ThreadMode::Parallel;
+    };
     argon2::hash_encoded(password.as_bytes(), &salt, &config).unwrap()
 }
 

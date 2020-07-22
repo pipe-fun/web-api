@@ -29,8 +29,8 @@ pub fn register(mut info: Json<NewUser>) -> Json<RegisterStatus> {
     let status = match tools::read_users() {
         Ok(u) => { check(u) }
         Err(e) => {
-            RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError).
-                set_db_api_status(e)
+            RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
+                .set_db_api_status(e)
         }
     };
 
@@ -52,8 +52,8 @@ pub fn register(mut info: Json<NewUser>) -> Json<RegisterStatus> {
     };
 
     let set_db_api_err = |status: _DbAPIStatus, e: String| -> RegisterStatus {
-        RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError).
-            set_db_api_status(DbAPIStatus::new(status, e))
+        RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
+            .set_db_api_status(DbAPIStatus::new(status, e))
     };
 
     let status = match client.post("http://localhost:1122/db/user/create").json(&info.into_inner()).send() {

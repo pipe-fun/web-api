@@ -29,8 +29,8 @@ pub fn login(info: Json<LoginInfo>) -> Json<LoginStatus> {
     let status = match tools::read_users() {
         Ok(u) => { op(u) }
         Err(e) => {
-            LoginStatus::default().set_login_status(_LoginStatus::DbAPIError).
-                set_db_api_status(e)
+            LoginStatus::default().set_login_status(_LoginStatus::DbAPIError)
+                .set_db_api_status(e)
         }
     };
 
