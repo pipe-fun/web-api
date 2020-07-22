@@ -6,7 +6,7 @@ use crate::status::db_api::{_DbAPIStatus, DbAPIStatus};
 use crate::user::user_struct::{NewUser, User};
 
 #[post("/register", format = "json", data = "<info>")]
-pub fn register(info: Json<NewUser>) -> Json<RegisterStatus> {
+pub fn register(mut info: Json<NewUser>) -> Json<RegisterStatus> {
     let check = |users: Vec<User>| -> RegisterStatus {
         let f_u: Vec<User> = users.into_iter().filter(|u|
             u.user_name.eq(&info.user_name) || u.user_email.eq(&info.user_email)).collect();
@@ -19,6 +19,8 @@ pub fn register(info: Json<NewUser>) -> Json<RegisterStatus> {
             }
         } else if info.user_password.len() < 8 {
             RegisterStatus::default().set_register_status(_RegisterStatus::PasswordTooShort)
+        } else if info.user_name.len() < 4 {
+            RegisterStatus::default().set_register_status(_RegisterStatus::UserNameTooShort)
         } else {
             RegisterStatus::default()
         }
@@ -32,7 +34,11 @@ pub fn register(info: Json<NewUser>) -> Json<RegisterStatus> {
         }
     };
 
-    if !status.eq(&RegisterStatus::default()) { return Json(status); }
+    if status.eq(&RegisterStatus::default()) {
+        info.user_password = tools::hash(&info.user_password);
+    } else {
+        return Json(status);
+    }
 
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
     let op = |status: &HashMap<String, String>| -> RegisterStatus {

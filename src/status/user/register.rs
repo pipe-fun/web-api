@@ -13,6 +13,7 @@ pub enum _RegisterStatus {
     UserNameHasExisted,
     EmailHasExisted,
     PasswordTooShort,
+    UserNameTooShort,
     DbAPIError,
     UndefinedError,
 }

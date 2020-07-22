@@ -27,8 +27,8 @@ pub enum _LoginStatus {
 pub struct LoginStatus {
     status_code: u8,
     login_status: _LoginStatus,
-    db_api_status: DbAPIStatus,
     data: Data,
+    db_api_status: DbAPIStatus,
 }
 
 impl Default for LoginStatus {

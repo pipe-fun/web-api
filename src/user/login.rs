@@ -12,7 +12,7 @@ pub struct LoginInfo {
 impl LoginInfo {
     fn equal(&self, user: &User) -> bool {
         user.user_name.eq(&self.user_name)
-            && user.user_password.eq(&self.user_password)
+            && tools::verify(&user.user_password, &self.user_password)
     }
 }
 
