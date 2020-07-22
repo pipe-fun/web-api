@@ -3,6 +3,7 @@ pub enum _DbAPIStatus {
     Ok,
     ConnectRefused,
     DataError,
+    DbError,
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq)]

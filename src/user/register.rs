@@ -42,10 +42,12 @@ pub fn register(mut info: Json<NewUser>) -> Json<RegisterStatus> {
 
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
     let op = |status: &HashMap<String, String>| -> RegisterStatus {
-        if status.get("status").unwrap().eq("ok") {
+        let status = status.get("status").unwrap();
+        if status.eq("ok") {
             RegisterStatus::default()
         } else {
-            RegisterStatus::default().set_register_status(_RegisterStatus::UndefinedError)
+            RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
+                .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
         }
     };
 

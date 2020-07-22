@@ -15,7 +15,6 @@ pub enum _RegisterStatus {
     PasswordTooShort,
     UserNameTooShort,
     DbAPIError,
-    UndefinedError,
 }
 
 impl Default for RegisterStatus {
