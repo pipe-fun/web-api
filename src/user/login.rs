@@ -1,5 +1,5 @@
 use rocket_contrib::json::Json;
-use crate::user::tools;
+use crate::user::{tools, auth};
 use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
 use crate::user::user_struct::User;
 
@@ -20,7 +20,8 @@ impl LoginInfo {
 pub fn login(info: Json<LoginInfo>) -> Json<LoginStatus> {
     let op = |users: Vec<User>| -> LoginStatus {
         if let Some(u) = users.iter().find(|&u| info.equal(u)) {
-            LoginStatus::default().set_data(Data::new(u))
+            let token = auth::gen_token(&info.user_name);
+            LoginStatus::default().set_data(Data::new(u, &token))
         } else {
             LoginStatus::default().set_login_status(_LoginStatus::UserNameOrPasswordWrong)
         }

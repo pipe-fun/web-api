@@ -5,13 +5,15 @@ use crate::user::user_struct::User;
 pub struct Data {
     id: i32,
     user_name: String,
+    token: String,
 }
 
 impl Data {
-    pub fn new(user: &User) -> Data {
+    pub fn new(user: &User, token: &str) -> Data {
         Data {
             id: user.id,
             user_name: user.user_name.clone(),
+            token: token.into()
         }
     }
 }
