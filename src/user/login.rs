@@ -1,4 +1,6 @@
 use rocket_contrib::json::Json;
+use rocket::http::{Cookie, Cookies};
+use rocket::http::SameSite;
 use crate::user::{tools, auth};
 use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
 use crate::user::user_struct::User;
@@ -17,11 +19,23 @@ impl LoginInfo {
 }
 
 #[post("/login", format = "json", data = "<info>")]
-pub fn login(info: Json<LoginInfo>) -> Json<LoginStatus> {
-    let op = |users: Vec<User>| -> LoginStatus {
+pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatus> {
+    let mut gen_cookie = |token: &String| {
+        let cookie = Cookie::build("token", token.clone())
+            .expires(time::now())
+            .max_age(time::Duration::minutes(1))
+            .path("/")
+            .same_site(SameSite::Strict)
+            .http_only(true)
+            .finish();
+        cookies.add(cookie);
+    };
+
+    let mut op = |users: Vec<User>| -> LoginStatus {
         if let Some(u) = users.iter().find(|&u| info.equal(u)) {
             let token = auth::gen_token(&info.user_name);
-            LoginStatus::default().set_data(Data::new(u, &token))
+            gen_cookie(&token);
+            LoginStatus::default().set_data(Data::new(u))
         } else {
             LoginStatus::default().set_login_status(_LoginStatus::UserNameOrPasswordWrong)
         }
