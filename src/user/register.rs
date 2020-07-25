@@ -7,6 +7,7 @@ use crate::user::user_struct::User;
 use crate::smtp;
 use crate::user::active::ActiveCode;
 use crate::status::user::active::_ActiveStatus;
+use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize)]
 pub struct RegisterInfo {
@@ -21,25 +22,25 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
 
     if !f_u.is_empty() {
         if f_u[0].user_name.eq(&info.user_name) {
-            RegisterStatus::default().set_register_status(_RegisterStatus::UserNameHasExisted)
+            RegisterStatus::default().set_status(_RegisterStatus::UserNameHasExisted)
         } else {
-            RegisterStatus::default().set_register_status(_RegisterStatus::EmailHasExisted)
+            RegisterStatus::default().set_status(_RegisterStatus::EmailHasExisted)
         }
     } else if info.user_password.len() < 8 {
-        RegisterStatus::default().set_register_status(_RegisterStatus::PasswordTooShort)
+        RegisterStatus::default().set_status(_RegisterStatus::PasswordTooShort)
     } else if info.user_name.len() < 4 {
-        RegisterStatus::default().set_register_status(_RegisterStatus::UserNameTooShort)
+        RegisterStatus::default().set_status(_RegisterStatus::UserNameTooShort)
     } else if let Err(_) = smtp::check_email(&info.user_email) {
-        RegisterStatus::default().set_register_status(_RegisterStatus::InvalidEmailAddress)
+        RegisterStatus::default().set_status(_RegisterStatus::InvalidEmailAddress)
     } else {
         let ac = ActiveCode::new("code".into(), info.user_name.clone());
         if let Err(s) = ac.to_db_and_email(&info.user_email) {
             match s.status() {
                 _ActiveStatus::SendEmailError => {
-                    RegisterStatus::default().set_register_status(_RegisterStatus::SendEmailError)
+                    RegisterStatus::default().set_status(_RegisterStatus::SendEmailError)
                 }
                 _ActiveStatus::DbAPIError => {
-                    RegisterStatus::default().set_db_api_status(s.db_api_status)
+                    RegisterStatus::default().set_db_api_status(s.db_api_status())
                 }
                 _ActiveStatus::Successfully => {
                     RegisterStatus::default()
@@ -56,7 +57,7 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
     let status = match tools::read_users() {
         Ok(u) => { check_rules(u, &info) }
         Err(e) => {
-            RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
+            RegisterStatus::default().set_status(_RegisterStatus::DbAPIError)
                 .set_db_api_status(e)
         }
     };
@@ -73,14 +74,9 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
         if status.eq("ok") {
             RegisterStatus::default()
         } else {
-            RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
+            RegisterStatus::default().set_status(_RegisterStatus::DbAPIError)
                 .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
         }
-    };
-
-    let set_db_api_err = |status: _DbAPIStatus, e: String| -> RegisterStatus {
-        RegisterStatus::default().set_register_status(_RegisterStatus::DbAPIError)
-            .set_db_api_status(DbAPIStatus::new(status, e))
     };
 
     let status = match client.post("http://localhost:1122/api/user/create")
@@ -88,11 +84,13 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => { op(&status) }
-                Err(e) => { set_db_api_err(_DbAPIStatus::DataError, e.to_string()) }
+                Err(e) => {
+                    RegisterStatus::set_db_api_err(_DbAPIStatus::DataError, e.to_string())
+                }
             }
         }
         Err(e) => {
-            set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string())
+            RegisterStatus::set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string())
         }
     };
 

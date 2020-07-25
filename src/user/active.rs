@@ -1,7 +1,8 @@
-use crate::status::user::active::{ActiveStatus, _ActiveStatus};
 use std::collections::HashMap;
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::smtp;
+use crate::my_trait::StatusTrait;
+use crate::status::user::active::{ActiveStatus, _ActiveStatus};
 
 #[derive(Serialize, Deserialize)]
 pub struct ActiveCode {
@@ -23,18 +24,14 @@ impl ActiveCode {
             if status.eq("ok") {
                 ActiveStatus::default()
             } else {
-                ActiveStatus::default().set_active_status(_ActiveStatus::DbAPIError)
-                    .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
+                ActiveStatus::default().set_status(_ActiveStatus::DbAPIError)
+                    .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError
+                                                        , status.clone()))
             }
         };
 
-        let set_db_api_err = |status: _DbAPIStatus, e: String| -> ActiveStatus {
-            ActiveStatus::default().set_active_status(_ActiveStatus::DbAPIError)
-                .set_db_api_status(DbAPIStatus::new(status, e))
-        };
-
         if let Err(_) = smtp::send_email(email, &self.code) {
-            return Err(ActiveStatus::default().set_active_status(_ActiveStatus::SendEmailError));
+            return Err(ActiveStatus::default().set_status(_ActiveStatus::SendEmailError));
         }
 
         let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
@@ -43,11 +40,13 @@ impl ActiveCode {
             Ok(response) => {
                 match response.json::<HashMap<String, String>>() {
                     Ok(status) => { Ok(op(&status)) }
-                    Err(e) => { Err(set_db_api_err(_DbAPIStatus::DataError, e.to_string())) }
+                    Err(e) => {
+                        Err(ActiveStatus::set_db_api_err(_DbAPIStatus::DataError, e.to_string()))
+                    }
                 }
             }
             Err(e) => {
-                Err(set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string()))
+                Err(ActiveStatus::set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string()))
             }
         }
     }

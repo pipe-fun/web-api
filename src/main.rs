@@ -8,6 +8,7 @@ mod status;
 mod user;
 mod console;
 mod smtp;
+mod my_trait;
 
 use rocket::Config;
 use rocket::config::Environment;

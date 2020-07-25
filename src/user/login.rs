@@ -4,6 +4,7 @@ use rocket::http::SameSite;
 use crate::user::{tools, auth};
 use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
 use crate::user::user_struct::User;
+use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {
@@ -40,14 +41,14 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
             gen_cookie(&token);
             LoginStatus::default().set_data(Data::new(&u))
         } else {
-            LoginStatus::default().set_login_status(_LoginStatus::UserNameOrPasswordWrongOrNoActive)
+            LoginStatus::default().set_status(_LoginStatus::UserNameOrPasswordWrongOrNoActive)
         }
     };
 
     let status = match tools::read_users() {
         Ok(u) => { op(u) }
         Err(e) => {
-            LoginStatus::default().set_login_status(_LoginStatus::DbAPIError)
+            LoginStatus::default().set_status(_LoginStatus::DbAPIError)
                 .set_db_api_status(e)
         }
     };

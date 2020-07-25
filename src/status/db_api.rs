@@ -1,4 +1,4 @@
-#[derive(Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 pub enum _DbAPIStatus {
     Ok,
     ConnectRefused,
@@ -26,6 +26,13 @@ impl DbAPIStatus {
         DbAPIStatus {
             status,
             message,
+        }
+    }
+
+    pub fn clone(db_api_status: &DbAPIStatus) -> Self {
+        DbAPIStatus {
+            status: db_api_status.status,
+            message: db_api_status.message.clone()
         }
     }
 }
