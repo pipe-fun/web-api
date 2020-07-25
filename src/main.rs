@@ -7,6 +7,7 @@
 mod status;
 mod user;
 mod console;
+mod smtp;
 
 use rocket::Config;
 use rocket::config::Environment;
