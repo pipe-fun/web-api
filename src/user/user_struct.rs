@@ -1,14 +1,20 @@
-#[derive(Serialize, Deserialize)]
+use crate::user::register::RegisterInfo;
+
+#[derive(Serialize, Deserialize, Default)]
 pub struct User {
-    pub id: i32,
     pub user_name: String,
     pub user_password: String,
     pub user_email: String,
+    pub active: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct NewUser {
-    pub user_name: String,
-    pub user_password: String,
-    pub user_email: String,
+impl User {
+    pub fn new(new_user: &RegisterInfo) -> User {
+        User {
+            user_name: new_user.user_name.clone(),
+            user_password: new_user.user_password.clone(),
+            user_email: new_user.user_email.clone(),
+            active: false
+        }
+    }
 }

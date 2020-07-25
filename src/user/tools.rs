@@ -20,7 +20,7 @@ pub fn verify(hash: &str, password: &str) -> bool {
 }
 
 pub fn read_users() -> Result<Vec<User>, DbAPIStatus> {
-    let status = match reqwest::blocking::get("http://localhost:1122/db/user/read") {
+    let status = match reqwest::blocking::get("http://localhost:1122/api/user/read") {
         Ok(response) => {
             match response.json::<Vec<User>>() {
                 Ok(users) => { Ok(users) }
