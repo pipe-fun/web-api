@@ -1,8 +1,6 @@
 use rocket_contrib::json::Json;
-use std::collections::HashMap;
 use crate::user::tools;
 use crate::status::user::register::{RegisterStatus, _RegisterStatus};
-use crate::status::db_api::{_DbAPIStatus, DbAPIStatus};
 use crate::user::user_struct::User;
 use crate::smtp;
 use crate::user::active::ActiveCode;
@@ -36,15 +34,11 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
         let ac = ActiveCode::new("code".into(), info.user_name.clone());
         if let Err(s) = ac.to_db_and_email(&info.user_email) {
             match s.status() {
-                _ActiveStatus::SendEmailError => {
-                    RegisterStatus::default().set_status(_RegisterStatus::SendEmailError)
-                }
-                _ActiveStatus::DbAPIError => {
-                    RegisterStatus::set_db_api_err_simple(s.db_api_status())
-                }
-                _ => {
-                    RegisterStatus::default()
-                }
+                _ActiveStatus::SendEmailError =>
+                    RegisterStatus::default().set_status(_RegisterStatus::SendEmailError),
+                _ActiveStatus::DbAPIError =>
+                    RegisterStatus::set_db_api_err_simple(s.db_api_status()),
+                _ => RegisterStatus::default()
             }
         } else {
             RegisterStatus::default()
@@ -55,10 +49,8 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
 #[post("/register", format = "json", data = "<info>")]
 pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
     let status = match tools::read_users() {
-        Ok(u) => { check_rules(u, &info) }
-        Err(e) => {
-            RegisterStatus::set_db_api_err_simple(e)
-        }
+        Ok(u) => check_rules(u, &info),
+        Err(e) => RegisterStatus::set_db_api_err_simple(e)
     };
 
     if status.eq(&RegisterStatus::default()) {
@@ -67,30 +59,9 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
         return Json(status);
     }
 
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    let op = |status: &HashMap<String, String>| -> RegisterStatus {
-        let status = status.get("status").unwrap();
-        if status.eq("ok") {
-            RegisterStatus::default()
-        } else {
-            RegisterStatus::default().set_status(_RegisterStatus::DbAPIError)
-                .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
-        }
-    };
-
-    let status = match client.post("http://localhost:1122/api/user/create")
-        .json(&User::new(&info)).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => { op(&status) }
-                Err(e) => {
-                    RegisterStatus::set_db_api_err(_DbAPIStatus::DataError, e.to_string())
-                }
-            }
-        }
-        Err(e) => {
-            RegisterStatus::set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string())
-        }
+    let status = match tools::create_user(&info.into_inner()) {
+        Ok(()) => RegisterStatus::default(),
+        Err(e) => RegisterStatus::set_db_api_err_simple(e)
     };
 
     Json(status)

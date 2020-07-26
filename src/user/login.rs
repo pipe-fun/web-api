@@ -46,10 +46,8 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
     };
 
     let status = match tools::read_users() {
-        Ok(u) => { op(u) }
-        Err(e) => {
-            LoginStatus::set_db_api_err_simple(e)
-        }
+        Ok(u) => op(u),
+        Err(e) => LoginStatus::set_db_api_err_simple(e)
     };
 
     Json(status)

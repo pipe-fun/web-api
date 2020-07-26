@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use rocket_contrib::json::Json;
-use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use crate::status::db_api::DbAPIStatus;
 use crate::smtp;
 use crate::my_trait::StatusTrait;
 use crate::status::user::active::{ActiveStatus, _ActiveStatus};
@@ -21,35 +20,12 @@ impl ActiveCode {
     }
 
     pub fn to_db_and_email(&self, email: &str) -> Result<ActiveStatus, ActiveStatus> {
-        let op = |status: &HashMap<String, String>| -> ActiveStatus {
-            let status = status.get("status").unwrap();
-            if status.eq("ok") {
-                ActiveStatus::default()
-            } else {
-                ActiveStatus::default().set_status(_ActiveStatus::DbAPIError)
-                    .set_db_api_status(DbAPIStatus::new(_DbAPIStatus::DbError
-                                                        , status.clone()))
-            }
-        };
-
         if let Err(_) = smtp::send_email(email, &self.code) {
             return Err(ActiveStatus::default().set_status(_ActiveStatus::SendEmailError));
         }
-
-        let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-        match client.post("http://localhost:1122/api/user/active_code/create")
-            .json(&self).send() {
-            Ok(response) => {
-                match response.json::<HashMap<String, String>>() {
-                    Ok(status) => { Ok(op(&status)) }
-                    Err(e) => {
-                        Err(ActiveStatus::set_db_api_err(_DbAPIStatus::DataError, e.to_string()))
-                    }
-                }
-            }
-            Err(e) => {
-                Err(ActiveStatus::set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string()))
-            }
+        match tools::create_code(self) {
+            Ok(()) => Ok(ActiveStatus::default()),
+            Err(e) => Err(ActiveStatus::set_db_api_err_simple(e))
         }
     }
 }
@@ -65,33 +41,33 @@ pub fn active(code: String) -> Json<ActiveStatus> {
                     .find(|u| u.user_name.eq(owner)).unwrap();
                 user.set_active(true);
                 tools::update_user(user)
-            },
-            Err(e) => {
-                Err(e)
+            }
+            Err(e) => Err(e)
+        }
+    };
+
+    let get_status = |ac: &ActiveCode| -> ActiveStatus {
+        if let Err(e) = op(&ac.owner) {
+            ActiveStatus::set_db_api_err_simple(e)
+        } else {
+            if let Err(e) = tools::delete_active_code(ac) {
+                ActiveStatus::set_db_api_err_simple(e)
+            } else {
+                ActiveStatus::default()
             }
         }
     };
 
     let status = tools::read_active_code();
     match status {
-        Err(e) => { Json(ActiveStatus::set_db_api_err_simple(e)) },
+        Err(e) => Json(ActiveStatus::set_db_api_err_simple(e)),
         Ok(v_ac) => {
             if let Some(ac) = v_ac
                 .iter()
                 .find(|a| a.code.eq(&code)) {
-
-                if let Err(e) = op(&ac.owner) {
-                    Json(ActiveStatus::set_db_api_err_simple(e))
-                } else {
-                    if let Err(e) = tools::delete_active_code(ac) {
-                        Json(ActiveStatus::set_db_api_err_simple(e))
-                    } else {
-                        Json(ActiveStatus::default())
-                    }
-                }
+                Json(get_status(ac))
             } else {
-                let e = ActiveStatus::default().set_status(_ActiveStatus::InvalidCode);
-                Json(e)
+                Json(ActiveStatus::default().set_status(_ActiveStatus::InvalidCode))
             }
         }
     }
