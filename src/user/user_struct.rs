@@ -17,4 +17,8 @@ impl User {
             active: false
         }
     }
+
+    pub fn set_active(&mut self, active: bool) {
+        self.active = active;
+    }
 }

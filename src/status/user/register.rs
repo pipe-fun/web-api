@@ -56,6 +56,11 @@ impl StatusTrait for RegisterStatus {
             .set_db_api_status(DbAPIStatus::new(status, e))
     }
 
+    fn set_db_api_err_simple(status: Self::DbAPIStatus) -> Self {
+        RegisterStatus::default().set_status(_RegisterStatus::DbAPIError)
+            .set_db_api_status(status)
+    }
+
     fn status_code(&self) -> Self::StatusCode {
         self.status_code
     }

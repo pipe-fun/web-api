@@ -1,12 +1,14 @@
 use std::collections::HashMap;
+use rocket_contrib::json::Json;
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::smtp;
 use crate::my_trait::StatusTrait;
 use crate::status::user::active::{ActiveStatus, _ActiveStatus};
+use crate::user::tools;
 
 #[derive(Serialize, Deserialize)]
 pub struct ActiveCode {
-    code: String,
+    pub code: String,
     owner: String,
 }
 
@@ -47,6 +49,49 @@ impl ActiveCode {
             }
             Err(e) => {
                 Err(ActiveStatus::set_db_api_err(_DbAPIStatus::ConnectRefused, e.to_string()))
+            }
+        }
+    }
+}
+
+#[get("/active/<code>")]
+pub fn active(code: String) -> Json<ActiveStatus> {
+    let op = |owner: &str| -> Result<(), DbAPIStatus> {
+        let users = tools::read_users();
+        match users {
+            Ok(mut users) => {
+                let user = users
+                    .iter_mut()
+                    .find(|u| u.user_name.eq(owner)).unwrap();
+                user.set_active(true);
+                tools::update_user(user)
+            },
+            Err(e) => {
+                Err(e)
+            }
+        }
+    };
+
+    let status = tools::read_active_code();
+    match status {
+        Err(e) => { Json(ActiveStatus::set_db_api_err_simple(e)) },
+        Ok(v_ac) => {
+            if let Some(ac) = v_ac
+                .iter()
+                .find(|a| a.code.eq(&code)) {
+
+                if let Err(e) = op(&ac.owner) {
+                    Json(ActiveStatus::set_db_api_err_simple(e))
+                } else {
+                    if let Err(e) = tools::delete_active_code(ac) {
+                        Json(ActiveStatus::set_db_api_err_simple(e))
+                    } else {
+                        Json(ActiveStatus::default())
+                    }
+                }
+            } else {
+                let e = ActiveStatus::default().set_status(_ActiveStatus::InvalidCode);
+                Json(e)
             }
         }
     }

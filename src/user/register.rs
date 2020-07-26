@@ -40,9 +40,9 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
                     RegisterStatus::default().set_status(_RegisterStatus::SendEmailError)
                 }
                 _ActiveStatus::DbAPIError => {
-                    RegisterStatus::default().set_db_api_status(s.db_api_status())
+                    RegisterStatus::set_db_api_err_simple(s.db_api_status())
                 }
-                _ActiveStatus::Successfully => {
+                _ => {
                     RegisterStatus::default()
                 }
             }
@@ -57,8 +57,7 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
     let status = match tools::read_users() {
         Ok(u) => { check_rules(u, &info) }
         Err(e) => {
-            RegisterStatus::default().set_status(_RegisterStatus::DbAPIError)
-                .set_db_api_status(e)
+            RegisterStatus::set_db_api_err_simple(e)
         }
     };
 

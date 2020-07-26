@@ -2,6 +2,8 @@ use rand::Rng;
 use argon2::{self, Config, ThreadMode};
 use crate::user::user_struct::User;
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use std::collections::HashMap;
+use crate::user::active::ActiveCode;
 
 pub fn hash(password: &str) -> String {
     let cpus = num_cpus::get();
@@ -20,7 +22,7 @@ pub fn verify(hash: &str, password: &str) -> bool {
 }
 
 pub fn read_users() -> Result<Vec<User>, DbAPIStatus> {
-    let status = match reqwest::blocking::get("http://localhost:1122/api/user/read") {
+    match reqwest::blocking::get("http://localhost:1122/api/user/read") {
         Ok(response) => {
             match response.json::<Vec<User>>() {
                 Ok(users) => { Ok(users) }
@@ -32,7 +34,71 @@ pub fn read_users() -> Result<Vec<User>, DbAPIStatus> {
         Err(e) => {
             Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
         }
-    };
+    }
+}
 
-    status
+pub fn update_user(user: &User) -> Result<(), DbAPIStatus> {
+    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
+    let uri = format!("http://localhost:1122/api/user/update/{}", user.user_name);
+    match client.put(&uri).json(user).send() {
+        Ok(response) => {
+            match response.json::<HashMap<String, String>>() {
+                Ok(status) => {
+                    let status = status.get("status").unwrap();
+                    if status.eq("ok") {
+                        Ok(())
+                    } else {
+                        Err(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
+                    }
+                }
+                Err(e) => {
+                    Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
+                }
+            }
+        }
+        Err(e) => {
+            Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
+        }
+    }
+}
+
+pub fn read_active_code() -> Result<Vec<ActiveCode>, DbAPIStatus> {
+    match reqwest::blocking::get("http://localhost:1122/api/user/active_code/read") {
+        Ok(response) => {
+            match response.json::<Vec<ActiveCode>>() {
+                Ok(active_code) => { Ok(active_code) }
+                Err(e) => {
+                    Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
+                }
+            }
+        }
+        Err(e) => {
+            Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
+        }
+    }
+}
+
+pub fn delete_active_code(active_code: &ActiveCode) -> Result<(), DbAPIStatus> {
+    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
+    let uri = format!("http://localhost:1122/api/user/active_code/delete/{}", active_code.code);
+    match client.delete(&uri).json(active_code).send() {
+        Ok(response) => {
+            match response.json::<HashMap<String, String>>() {
+                Ok(status) => {
+                    let status = status.get("status").unwrap();
+                    if status.eq("ok") {
+                        Ok(())
+                    } else {
+                        Err(DbAPIStatus::new(_DbAPIStatus::DbError, status.clone()))
+                    }
+                }
+                Err(e) => {
+                    Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
+                }
+            }
+        }
+        Err(e) => {
+            Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
+        }
+    }
 }

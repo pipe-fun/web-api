@@ -72,6 +72,11 @@ impl StatusTrait for LoginStatus {
             .set_db_api_status(DbAPIStatus::new(status, e))
     }
 
+    fn set_db_api_err_simple(status: Self::DbAPIStatus) -> Self {
+        LoginStatus::default().set_status(_LoginStatus::DbAPIError)
+            .set_db_api_status(status)
+    }
+
     fn status_code(&self) -> Self::StatusCode {
         self.status_code
     }

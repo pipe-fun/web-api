@@ -3,8 +3,9 @@ use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum _ActiveStatus {
-    Successfully,
+    ActiveSuccessfully,
     SendEmailError,
+    InvalidCode,
     DbAPIError,
 }
 
@@ -19,7 +20,7 @@ impl Default for ActiveStatus {
     fn default() -> Self {
         ActiveStatus {
             status_code: 0,
-            status: _ActiveStatus::Successfully,
+            status: _ActiveStatus::ActiveSuccessfully,
             db_api_status: DbAPIStatus::default(),
         }
     }
@@ -49,6 +50,11 @@ impl StatusTrait for ActiveStatus {
     fn set_db_api_err(status: Self::_DbAPIStatus, e: String) -> Self {
         ActiveStatus::default().set_status(_ActiveStatus::DbAPIError)
             .set_db_api_status(DbAPIStatus::new(status, e))
+    }
+
+    fn set_db_api_err_simple(status: Self::DbAPIStatus) -> Self {
+        ActiveStatus::default().set_status(_ActiveStatus::DbAPIError)
+            .set_db_api_status(status)
     }
 
     fn status_code(&self) -> Self::StatusCode {
