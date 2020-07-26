@@ -37,6 +37,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
             .into_iter()
             .filter(|u| u.active)
             .find(|u| info.equal(u)) {
+
             let token = auth::gen_token(&info.user_name);
             gen_cookie(&token);
             LoginStatus::default().set_data(Data::new(&u))

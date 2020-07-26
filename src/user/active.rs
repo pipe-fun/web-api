@@ -33,8 +33,7 @@ impl ActiveCode {
 #[get("/active/<code>")]
 pub fn active(code: String) -> Json<ActiveStatus> {
     let op = |owner: &str| -> Result<(), DbAPIStatus> {
-        let users = tools::read_users();
-        match users {
+        match tools::read_users() {
             Ok(mut users) => {
                 let user = users
                     .iter_mut()
@@ -58,8 +57,7 @@ pub fn active(code: String) -> Json<ActiveStatus> {
         }
     };
 
-    let status = tools::read_active_code();
-    match status {
+    match tools::read_active_code() {
         Err(e) => Json(ActiveStatus::set_db_api_err_simple(e)),
         Ok(v_ac) => {
             if let Some(ac) = v_ac
