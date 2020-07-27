@@ -1,9 +1,9 @@
 use rocket_contrib::json::Json;
 use rocket::http::{Cookie, Cookies};
 use rocket::http::SameSite;
-use crate::user::{tools, auth};
+use crate::user::{tools, auth, user};
 use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
-use crate::user::user_struct::User;
+use crate::user::user::User;
 use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize)]
@@ -46,7 +46,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
         }
     };
 
-    let status = match tools::read_users() {
+    let status = match user::read() {
         Ok(u) => op(u),
         Err(e) => LoginStatus::set_db_api_err_simple(e)
     };

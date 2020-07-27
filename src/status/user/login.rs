@@ -1,5 +1,5 @@
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
-use crate::user::user_struct::User;
+use crate::user::user::User;
 use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize, Default)]

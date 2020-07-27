@@ -1,9 +1,8 @@
 use rocket_contrib::json::Json;
-use crate::user::tools;
+use crate::user::{tools, user};
 use crate::status::user::register::{RegisterStatus, _RegisterStatus};
-use crate::user::user_struct::User;
-use crate::smtp;
-use crate::user::active::ActiveCode;
+use crate::user::user::User;
+use crate::user::active_code::ActiveCode;
 use crate::status::user::active::_ActiveStatus;
 use crate::my_trait::StatusTrait;
 
@@ -28,14 +27,14 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
         RegisterStatus::default().set_status(_RegisterStatus::PasswordTooShort)
     } else if info.user_name.len() < 4 {
         RegisterStatus::default().set_status(_RegisterStatus::UserNameTooShort)
-    } else if let Err(_) = smtp::check_email(&info.user_email) {
-        RegisterStatus::default().set_status(_RegisterStatus::InvalidEmailAddress)
     } else {
         let ac = ActiveCode::new("code".into(), info.user_name.clone());
         if let Err(s) = ac.to_db_and_email(&info.user_email) {
             match s.status() {
                 _ActiveStatus::SendEmailError =>
                     RegisterStatus::default().set_status(_RegisterStatus::SendEmailError),
+                _ActiveStatus::InvalidEmailAddress =>
+                    RegisterStatus::default().set_status(_RegisterStatus::InvalidEmailAddress),
                 _ActiveStatus::DbAPIError =>
                     RegisterStatus::set_db_api_err_simple(s.db_api_status()),
                 _ => RegisterStatus::default()
@@ -48,7 +47,7 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
 
 #[post("/register", format = "json", data = "<info>")]
 pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
-    let status = match tools::read_users() {
+    let status = match user::read() {
         Ok(u) => check_rules(u, &info),
         Err(e) => RegisterStatus::set_db_api_err_simple(e)
     };
@@ -59,7 +58,7 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
         return Json(status);
     }
 
-    let status = match tools::create_user(&info.into_inner()) {
+    let status = match user::create(&info.into_inner()) {
         Ok(()) => RegisterStatus::default(),
         Err(e) => RegisterStatus::set_db_api_err_simple(e)
     };
