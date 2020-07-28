@@ -66,11 +66,11 @@ pub fn update_password(info: Json<NewPassword>) -> Json<ChangeStatus> {
         }
     };
 
-    let get_status = |ac: &CheckCode| -> ChangeStatus {
-        if let Err(e) = op(&ac.owner()) {
+    let get_status = |cc: &CheckCode| -> ChangeStatus {
+        if let Err(e) = op(&cc.owner()) {
             ChangeStatus::set_db_api_err_simple(e)
         } else {
-            if let Err(e) = check_code::delete(ac) {
+            if let Err(e) = check_code::delete(cc) {
                 ChangeStatus::set_db_api_err_simple(e)
             } else {
                 ChangeStatus::default()
@@ -80,11 +80,11 @@ pub fn update_password(info: Json<NewPassword>) -> Json<ChangeStatus> {
 
     match check_code::read() {
         Err(e) => Json(ChangeStatus::set_db_api_err_simple(e)),
-        Ok(v_ac) => {
-            if let Some(ac) = v_ac
+        Ok(v_cc) => {
+            if let Some(cc) = v_cc
                 .iter()
                 .find(|a| a.code().eq(&info.code)) {
-                Json(get_status(ac))
+                Json(get_status(cc))
             } else {
                 Json(ChangeStatus::default().set_status(_ChangeStatus::InvalidCode))
             }

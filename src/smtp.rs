@@ -5,6 +5,11 @@ use native_tls::TlsConnector;
 use lettre_email::{EmailBuilder, Email};
 use lettre_email::error::Error;
 
+pub enum EmailType {
+    Active,
+    ChangePassword,
+}
+
 pub fn check_email(to: &str) -> Result<Email, Error> {
     EmailBuilder::new()
         .to(to)
@@ -12,15 +17,20 @@ pub fn check_email(to: &str) -> Result<Email, Error> {
         .build()
 }
 
-pub fn send_email(to: &str, message: &str) -> SmtpResult {
+pub fn send_email(to: &str, email_type: EmailType, message: &str) -> SmtpResult {
     let smtp_address = "xxx";
     let username = "xxxx";
     let password = "xxxx";
 
+    let subject = match email_type {
+        EmailType::Active => "active your account",
+        EmailType::ChangePassword => "check code",
+    };
+
     let email = EmailBuilder::new()
         .to(to)
         .from(username)
-        .subject("active your account")
+        .subject(subject)
         .text(message)
         .build()
         .unwrap()

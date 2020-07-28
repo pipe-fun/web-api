@@ -4,6 +4,7 @@ use crate::my_trait::StatusTrait;
 use crate::status::user::active::{ActiveStatus, _ActiveStatus};
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::tools::check_response;
+use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
 pub struct ActiveCode {
@@ -23,7 +24,7 @@ impl ActiveCode {
         if let Err(_) = smtp::check_email(&email) {
             return Err(ActiveStatus::default().set_status(_ActiveStatus::InvalidEmailAddress));
         }
-        if let Err(_) = smtp::send_email(email, &self.code) {
+        if let Err(_) = smtp::send_email(email, EmailType::Active, &self.code) {
             return Err(ActiveStatus::default().set_status(_ActiveStatus::SendEmailError));
         }
         match create(self) {

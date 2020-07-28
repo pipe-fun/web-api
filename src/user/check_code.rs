@@ -5,6 +5,7 @@ use crate::my_trait::StatusTrait;
 use crate::user::check_code;
 use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::tools::check_response;
+use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
 pub struct CheckCode {
@@ -24,7 +25,7 @@ impl CheckCode {
         if let Err(_) = smtp::check_email(email) {
             return Err(CheckStatus::default().set_status(_CheckStatus::InvalidEmailAddress));
         }
-        if let Err(_) = smtp::send_email(email, &self.code.to_string()) {
+        if let Err(_) = smtp::send_email(email, EmailType::ChangePassword, &self.code.to_string()) {
             return Err(CheckStatus::default().set_status(_CheckStatus::SendEmailError));
         }
         match check_code::create(self) {
