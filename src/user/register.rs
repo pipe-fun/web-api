@@ -17,17 +17,15 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
     let f_u: Vec<User> = users.into_iter().filter(|u|
         u.user_name.eq(&info.user_name) || u.user_email.eq(&info.user_email)).collect();
 
-    if !f_u.is_empty() {
+    let check_name_email = || -> RegisterStatus {
         if f_u[0].user_name.eq(&info.user_name) {
             RegisterStatus::default().set_status(_RegisterStatus::UserNameHasExisted)
         } else {
             RegisterStatus::default().set_status(_RegisterStatus::EmailHasExisted)
         }
-    } else if info.user_password.len() < 8 {
-        RegisterStatus::default().set_status(_RegisterStatus::PasswordTooShort)
-    } else if info.user_name.len() < 4 {
-        RegisterStatus::default().set_status(_RegisterStatus::UserNameTooShort)
-    } else {
+    };
+
+    let check_to_email = || -> RegisterStatus {
         let ac = ActiveCode::new("code".into(), info.user_name.clone());
         if let Err(s) = ac.to_db_and_email(&info.user_email) {
             match s.status() {
@@ -42,6 +40,16 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
         } else {
             RegisterStatus::default()
         }
+    };
+
+    if !f_u.is_empty() {
+        check_name_email()
+    } else if info.user_password.len() < 8 {
+        RegisterStatus::default().set_status(_RegisterStatus::PasswordTooShort)
+    } else if info.user_name.len() < 4 {
+        RegisterStatus::default().set_status(_RegisterStatus::UserNameTooShort)
+    } else {
+        check_to_email()
     }
 }
 

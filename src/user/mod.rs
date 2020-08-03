@@ -6,4 +6,4 @@ pub mod auth;
 pub mod active_code;
 pub mod check_code;
 pub mod active;
-pub mod forget;
+pub mod new_password;

@@ -4,6 +4,7 @@ use crate::my_trait::StatusTrait;
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum _ChangeStatus {
     ChangeSuccessfully,
+    PasswordTooShort,
     InvalidCode,
     DbAPIError,
 }

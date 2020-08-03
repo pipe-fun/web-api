@@ -12,7 +12,7 @@ use crate::status::db_api::DbAPIStatus;
 #[derive(Serialize, Deserialize)]
 pub struct NewPassword {
     code: i32,
-    user_password: String,
+    new_password: String,
 }
 
 #[get("/send_code/<email>")]
@@ -51,6 +51,10 @@ pub fn send_check_code(email: String) -> Json<CheckStatus> {
 
 #[post("/update_password", format = "json", data = "<info>")]
 pub fn update_password(info: Json<NewPassword>) -> Json<ChangeStatus> {
+    if info.new_password.len() < 8 {
+        return Json(ChangeStatus::default().set_status(_ChangeStatus::PasswordTooShort))
+    }
+
     let op = |owner: &str| -> Result<(), DbAPIStatus> {
         match user::read() {
             Ok(mut users) => {
@@ -58,7 +62,7 @@ pub fn update_password(info: Json<NewPassword>) -> Json<ChangeStatus> {
                     .iter_mut()
                     .filter(|u| u.active)
                     .find(|u| u.user_name.eq(owner)).unwrap();
-                let password = tools::hash(&info.user_password);
+                let password = tools::hash(&info.new_password);
                 user.set_password(password);
                 user::update(user)
             }
