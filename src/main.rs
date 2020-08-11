@@ -29,11 +29,10 @@ use crate::console::test::static_rocket_route_info_for_test_error;
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
-    config.set_address("0.0.0.0").unwrap();
     config.set_port(8080);
     rocket::custom(config)
-        .mount("/api/user", routes![login, authorized, not_authorized, register, active, send_check_code, update_password])
-        .mount("/api/console", routes![test, test_error])
+        .mount("/user", routes![login, authorized, not_authorized, register, active, send_check_code, update_password])
+        .mount("/console", routes![test, test_error])
 }
 
 fn main() {
