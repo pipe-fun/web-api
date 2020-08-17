@@ -27,10 +27,14 @@ use crate::console::test::static_rocket_route_info_for_test_error;
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
-    config.set_port(8080);
+    config.set_port(8888);
+
+    let default = rocket_cors::CorsOptions::default();
+    let cors = rocket_cors::Cors::from_options(&default).unwrap();
     rocket::custom(config)
         .mount("/user", routes![login, authorized, not_authorized, register, active, send_check_code, update_password])
         .mount("/console", routes![test, test_error])
+        .attach(cors)
 }
 
 fn main() {
