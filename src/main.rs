@@ -7,11 +7,9 @@ extern crate serde_derive;
 #[macro_use]
 extern crate rocket_contrib;
 
-mod status;
 mod user;
 mod console;
 mod smtp;
-mod my_trait;
 
 use rocket::Config;
 use rocket::config::Environment;

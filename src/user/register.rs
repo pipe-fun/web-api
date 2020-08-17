@@ -1,10 +1,10 @@
 use rocket_contrib::json::Json;
+use status_protoc::status::user::register::{RegisterStatus, _RegisterStatus};
+use status_protoc::my_trait::StatusTrait;
+use status_protoc::status::user::active::_ActiveStatus;
 use crate::user::{tools, user};
-use crate::status::user::register::{RegisterStatus, _RegisterStatus};
 use crate::user::user::User;
 use crate::user::active_code::ActiveCode;
-use crate::status::user::active::_ActiveStatus;
-use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize)]
 pub struct RegisterInfo {

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::register::RegisterInfo;
-use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::tools::check_response;
 
 #[derive(Serialize, Deserialize, Default)]

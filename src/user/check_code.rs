@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use crate::status::user::check::{CheckStatus, _CheckStatus};
+use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
+use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use status_protoc::my_trait::StatusTrait;
 use crate::smtp;
-use crate::my_trait::StatusTrait;
 use crate::user::check_code;
-use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::tools::check_response;
 use crate::smtp::EmailType;
 

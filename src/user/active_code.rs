@@ -1,8 +1,8 @@
 use std::collections::HashMap;
+use status_protoc::status::user::active::{ActiveStatus, _ActiveStatus};
+use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use status_protoc::my_trait::StatusTrait;
 use crate::smtp;
-use crate::my_trait::StatusTrait;
-use crate::status::user::active::{ActiveStatus, _ActiveStatus};
-use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use crate::user::tools::check_response;
 use crate::smtp::EmailType;
 

@@ -1,7 +1,7 @@
 use rand::Rng;
 use argon2::{self, Config, ThreadMode};
 use std::collections::HashMap;
-use crate::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 
 pub fn hash(password: &str) -> String {
     let cpus = num_cpus::get();

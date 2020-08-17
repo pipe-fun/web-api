@@ -1,10 +1,10 @@
 use rocket_contrib::json::Json;
 use rocket::http::{Cookie, Cookies};
 use rocket::http::SameSite;
+use status_protoc::status::user::login::{LoginStatus, Data, _LoginStatus};
+use status_protoc::my_trait::StatusTrait;
 use crate::user::{tools, auth, user};
-use crate::status::user::login::{LoginStatus, _LoginStatus, Data};
 use crate::user::user::User;
-use crate::my_trait::StatusTrait;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {
@@ -40,7 +40,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
 
             let token = auth::gen_token(&info.user_name);
             gen_cookie(&token);
-            LoginStatus::default().set_data(Data::new(&u))
+            LoginStatus::default().set_data(Data::new(&u.user_name))
         } else {
             LoginStatus::default().set_status(_LoginStatus::UserNameOrPasswordWrongOrNoActive)
         }

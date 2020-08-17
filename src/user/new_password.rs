@@ -1,13 +1,13 @@
 use rocket_contrib::json::Json;
 use rand::Rng;
-use crate::status::user::check::{CheckStatus, _CheckStatus};
+use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
+use status_protoc::my_trait::StatusTrait;
+use status_protoc::status::user::change::{ChangeStatus, _ChangeStatus};
+use status_protoc::status::db_api::DbAPIStatus;
 use crate::user::{check_code, user, tools};
 use crate::user::user::User;
-use crate::my_trait::StatusTrait;
 use crate::smtp;
 use crate::user::check_code::CheckCode;
-use crate::status::user::change::{ChangeStatus, _ChangeStatus};
-use crate::status::db_api::DbAPIStatus;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewPassword {
