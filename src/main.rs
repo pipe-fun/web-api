@@ -13,6 +13,8 @@ mod smtp;
 
 use rocket::Config;
 use rocket::config::Environment;
+use rocket_cors::{AllowedOrigins, Origins};
+use std::collections::HashSet;
 
 use crate::user::login::static_rocket_route_info_for_login;
 use crate::user::auth::static_rocket_route_info_for_authorized;
@@ -27,10 +29,21 @@ use crate::console::test::static_rocket_route_info_for_test_error;
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
+    config.set_address("127.0.0.1").unwrap();
     config.set_port(8888);
 
-    let default = rocket_cors::CorsOptions::default();
-    let cors = rocket_cors::Cors::from_options(&default).unwrap();
+    let mut _origin = HashSet::new();
+    let mut origin = Origins::default();
+    _origin.insert("http://127.0.0.1:8080".to_string());
+    origin.exact = Some(_origin);
+
+    let cors_options = rocket_cors::CorsOptions::default()
+        .allowed_origins(AllowedOrigins::Some(origin))
+        .send_wildcard(false)
+        .allow_credentials(true);
+
+    let cors = rocket_cors::Cors::from_options(&cors_options).unwrap();
+
     rocket::custom(config)
         .mount("/user", routes![login, authorized, not_authorized, register, active, send_check_code, update_password])
         .mount("/console", routes![test, test_error])

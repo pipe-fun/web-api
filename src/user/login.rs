@@ -23,8 +23,9 @@ impl LoginInfo {
 pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatus> {
     let mut gen_cookie = |token: &str| {
         let cookie = Cookie::build("token", token.to_string())
+            .domain("127.0.0.1")
             .expires(time::now())
-            .max_age(time::Duration::minutes(1))
+            .max_age(time::Duration::minutes(10))
             .path("/")
             .same_site(SameSite::Strict)
             .http_only(true)
