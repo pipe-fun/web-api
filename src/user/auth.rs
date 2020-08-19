@@ -9,13 +9,14 @@ use rocket_contrib::json::JsonValue;
 pub struct ApiToken(pub String);
 
 #[get("/auth")]
-pub fn authorized(_token: ApiToken) -> JsonValue {
-    json!( { "authorized": true } )
+pub fn authorized(token: ApiToken) -> JsonValue {
+    let name = token.0;
+    json!( { "authorized": true, "user_name": name } )
 }
 
 #[get("/auth", rank = 2)]
 pub fn not_authorized() -> JsonValue {
-    json!( { "authorized": false } )
+    json!( { "authorized": false, "user_name": String::default() } )
 }
 
 pub fn gen_token(user_name: &str) -> String {

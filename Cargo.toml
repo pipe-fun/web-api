@@ -17,7 +17,6 @@ num_cpus = "1.13"
 jwt = "0.9"
 hmac = "0.8"
 sha2 = "0.9"
-chrono = "0.4"
 time = "0.1.43"
 lettre = "0.9"
 lettre_email = "0.9"
@@ -28,6 +27,10 @@ rocket_cors = "0.5.1"
 version = "0.1"
 path = "../status-protoc"
 
+[dependencies.type-protoc]
+version = "0.1"
+path = "../type-protoc"
+
 [dependencies.reqwest]
 version = "0.10"
 features = ["json", "blocking"]
@@ -36,3 +39,10 @@ features = ["json", "blocking"]
 version = "0.4.5"
 features = ["json"]
 
+[dependencies.chrono]
+version = "0.4"
+features = ["serde"]
+
+[dependencies.uuid]
+version = "0.8"
+features = ["serde", "v4"]

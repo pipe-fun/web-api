@@ -27,6 +27,17 @@ use crate::user::new_password::static_rocket_route_info_for_update_password;
 use crate::console::test::static_rocket_route_info_for_test;
 use crate::console::test::static_rocket_route_info_for_test_error;
 
+use crate::console::task::static_rocket_route_info_for_task_read;
+use crate::console::task::static_rocket_route_info_for_task_create;
+use crate::console::task::static_rocket_route_info_for_task_update;
+use crate::console::task::static_rocket_route_info_for_task_delete;
+
+use crate::console::device::static_rocket_route_info_for_device_read;
+use crate::console::device::static_rocket_route_info_for_device_create;
+use crate::console::device::static_rocket_route_info_for_device_update;
+use crate::console::device::static_rocket_route_info_for_device_delete;
+
+
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
     config.set_address("127.0.0.1").unwrap();
@@ -38,6 +49,7 @@ fn rocket_web_api() -> rocket::Rocket {
     origin.exact = Some(_origin);
 
     let cors_options = rocket_cors::CorsOptions::default()
+        .max_age(Some(5 * 60))
         .allowed_origins(AllowedOrigins::Some(origin))
         .send_wildcard(false)
         .allow_credentials(true);
@@ -45,8 +57,12 @@ fn rocket_web_api() -> rocket::Rocket {
     let cors = rocket_cors::Cors::from_options(&cors_options).unwrap();
 
     rocket::custom(config)
-        .mount("/user", routes![login, authorized, not_authorized, register, active, send_check_code, update_password])
+        .mount("/user",
+               routes![login, authorized, not_authorized, register
+                     , active, send_check_code, update_password])
         .mount("/console", routes![test, test_error])
+        .mount("/console/task", routes![task_read, task_create, task_update, task_delete])
+        .mount("/console/device", routes![device_read, device_create, device_update, device_delete])
         .attach(cors)
 }
 
