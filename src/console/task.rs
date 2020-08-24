@@ -50,6 +50,21 @@ pub fn task_read(token: ApiToken) -> Json<Vec<Task>> {
     Json(tasks)
 }
 
+#[get("/read_by_id/<id>")]
+pub fn task_read_by_id(_token: ApiToken, id: i32) -> Json<Task> {
+    let tasks = match read() {
+        Ok(ts) => ts,
+        Err(_) => Vec::new()
+    };
+
+    let mut tasks = tasks.into_iter()
+        .filter(|t| t.id == id)
+        .collect::<Vec<Task>>();
+
+    let task = tasks.pop().unwrap();
+    Json(task)
+}
+
 #[delete("/delete/<id>")]
 pub fn task_delete(_token: ApiToken, id: i32) -> Json<TaskStatus> {
     let status = match delete(id) {
@@ -61,7 +76,7 @@ pub fn task_delete(_token: ApiToken, id: i32) -> Json<TaskStatus> {
 }
 
 #[post("/create", format = "json", data = "<info>")]
-pub fn task_create(_token: ApiToken, info: Json<NewTask>) -> Json<TaskStatus> {
+pub fn task_create(token: ApiToken, mut info: Json<NewTask>) -> Json<TaskStatus> {
     let pre_status = match device::read() {
         Ok(ds) => {
             let ds = ds.into_iter()
@@ -78,6 +93,7 @@ pub fn task_create(_token: ApiToken, info: Json<NewTask>) -> Json<TaskStatus> {
 
     if pre_status.status_code() != 0 { return Json(pre_status); }
 
+    info.owner = token.0;
     let status = match create(&info.into_inner()) {
         Ok(()) => TaskStatus::default(),
         Err(e) => TaskStatus::set_db_api_err_simple(e)

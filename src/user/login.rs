@@ -25,7 +25,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
         let cookie = Cookie::build("token", token.to_string())
             .domain("127.0.0.1")
             .expires(time::now())
-            .max_age(time::Duration::minutes(10))
+            .max_age(time::Duration::minutes(60 * 24))
             .path("/")
             .same_site(SameSite::Strict)
             .http_only(true)
