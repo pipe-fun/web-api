@@ -8,12 +8,12 @@ use status_protoc::my_trait::StatusTrait;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
-pub struct PreDevice {
+pub struct NewDevice {
     name: String,
     owner: String
 }
 
-impl PreDevice {
+impl NewDevice {
     fn to_device(self) -> Device {
         let uuid = Uuid::new_v4();
         Device {
@@ -56,8 +56,9 @@ pub fn device_delete(_token: ApiToken, token: String) -> Json<DeviceStatus> {
 }
 
 #[post("/create", format = "json", data = "<info>")]
-pub fn device_create(_token: ApiToken, info: Json<PreDevice>) -> Json<DeviceStatus> {
-    let device = info.into_inner().to_device();
+pub fn device_create(token: ApiToken, info: Json<NewDevice>) -> Json<DeviceStatus> {
+    let mut device = info.into_inner().to_device();
+    device.owner = token.0;
     let status = match create(&device) {
         Ok(()) => DeviceStatus::default(),
         Err(e) => DeviceStatus::set_db_api_err_simple(e)
