@@ -1,13 +1,17 @@
 use chrono::{NaiveDateTime, NaiveTime};
 use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use std::collections::HashMap;
-use crate::user::tools::check_response;
+use rocket::State;
+use std::net::TcpStream;
 use rocket_contrib::json::Json;
 use status_protoc::status::console::task::{TaskStatus, _TaskStatus};
 use status_protoc::my_trait::StatusTrait;
+use web2core::protoc::{ExecuteResult, ExecuteInfo, Operation};
+use std::io::{Write, Read};
 use crate::console::device;
 use crate::console::device::Device;
 use crate::user::auth::ApiToken;
+use crate::user::tools::check_response;
 
 #[derive(Serialize, Deserialize)]
 pub struct Task {
@@ -110,6 +114,30 @@ pub fn task_update(_token: ApiToken, id: i32, info: Json<NewTask>) -> Json<TaskS
     };
 
     Json(status)
+}
+
+#[post("/execute", format = "json", data = "<info>")]
+pub fn task_execute(_token: ApiToken, info: Json<Task>, core: State<Option<TcpStream>>)
+    -> Json<ExecuteResult> {
+    if core.inner().is_none() {
+        return Json(ExecuteResult::CoreOffline);
+    }
+
+    let mut core = core.inner().as_ref().unwrap();
+    let info = ExecuteInfo::new(&info.device_token, &info.command);
+    let buf = serde_json::to_string(&Operation::Execute(info)).unwrap();
+
+    let result = match core.write(buf.as_bytes()) {
+        Ok(_) => {
+            let mut buf = [0; 1024];
+            let len = core.read(&mut buf).unwrap();
+            let result = core::str::from_utf8(&buf[0..len]).unwrap();
+            serde_json::from_str(&result).unwrap()
+        }
+        Err(_) => ExecuteResult::CoreOffline,
+    };
+
+    Json(result)
 }
 
 pub fn create(info: &NewTask) -> Result<(), DbAPIStatus> {

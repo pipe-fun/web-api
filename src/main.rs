@@ -32,11 +32,14 @@ use crate::console::task::static_rocket_route_info_for_task_read_by_id;
 use crate::console::task::static_rocket_route_info_for_task_create;
 use crate::console::task::static_rocket_route_info_for_task_update;
 use crate::console::task::static_rocket_route_info_for_task_delete;
+use crate::console::task::static_rocket_route_info_for_task_execute;
 
 use crate::console::device::static_rocket_route_info_for_device_read;
 use crate::console::device::static_rocket_route_info_for_device_create;
 use crate::console::device::static_rocket_route_info_for_device_update;
 use crate::console::device::static_rocket_route_info_for_device_delete;
+use std::net::TcpStream;
+use std::io::Write;
 
 
 fn rocket_web_api() -> rocket::Rocket {
@@ -62,11 +65,16 @@ fn rocket_web_api() -> rocket::Rocket {
                routes![login, authorized, not_authorized, register
                      , active, send_check_code, update_password])
         .mount("/console", routes![test, test_error])
-        .mount("/console/task", routes![task_read, task_read_by_id, task_create, task_update, task_delete])
+        .mount("/console/task", routes![task_read, task_read_by_id, task_create, task_update, task_delete, task_execute])
         .mount("/console/device", routes![device_read, device_create, device_update, device_delete])
         .attach(cors)
 }
 
 fn main() {
-    rocket_web_api().launch();
+    let core = TcpStream::connect("127.0.0.1:4321");
+    let core = match core {
+        Ok(mut s) => if let Ok(_) = s.write("key".as_bytes()) { Some(s) } else { None },
+        Err(_) => None
+    };
+    rocket_web_api().manage(core).launch();
 }

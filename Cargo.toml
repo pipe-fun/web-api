@@ -46,3 +46,7 @@ features = ["serde"]
 [dependencies.uuid]
 version = "0.8"
 features = ["serde", "v4"]
+
+[dependencies.web2core]
+version = "0.1"
+path = "../web2core"

@@ -1,11 +1,11 @@
 use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use std::collections::HashMap;
-use crate::user::tools::check_response;
-use crate::user::auth::ApiToken;
 use rocket_contrib::json::Json;
 use status_protoc::status::console::device::DeviceStatus;
 use status_protoc::my_trait::StatusTrait;
 use uuid::Uuid;
+use crate::user::tools::check_response;
+use crate::user::auth::ApiToken;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewDevice {
