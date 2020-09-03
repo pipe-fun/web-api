@@ -44,7 +44,7 @@ use std::io::Write;
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
-    config.set_address("127.0.0.1").unwrap();
+    config.set_address("0.0.0.0").unwrap();
     config.set_port(8888);
 
     let mut _origin = HashSet::new();

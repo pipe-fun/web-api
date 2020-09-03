@@ -27,10 +27,6 @@ rocket_cors = "0.5.1"
 version = "0.1"
 path = "../status-protoc"
 
-[dependencies.type-protoc]
-version = "0.1"
-path = "../type-protoc"
-
 [dependencies.reqwest]
 version = "0.10"
 features = ["json", "blocking"]
