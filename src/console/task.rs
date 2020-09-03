@@ -6,11 +6,11 @@ use std::net::TcpStream;
 use rocket_contrib::json::Json;
 use status_protoc::status::console::task::{TaskStatus, _TaskStatus};
 use status_protoc::my_trait::StatusTrait;
-use web2core::protoc::{ExecuteResult, ExecuteInfo, Operation};
+use web2core::protoc::{OpResult, ExecuteInfo, Operation};
 use std::io::{Write, Read};
 use crate::console::device;
 use crate::console::device::Device;
-use crate::user::auth::ApiToken;
+use crate::user::auth::APIToken;
 use crate::user::tools::check_response;
 
 #[derive(Serialize, Deserialize)]
@@ -41,7 +41,7 @@ pub struct NewTask {
 }
 
 #[get("/read")]
-pub fn task_read(token: ApiToken) -> Json<Vec<Task>> {
+pub fn task_read(token: APIToken) -> Json<Vec<Task>> {
     let tasks = match read() {
         Ok(ts) => ts,
         Err(_) => Vec::new()
@@ -54,23 +54,8 @@ pub fn task_read(token: ApiToken) -> Json<Vec<Task>> {
     Json(tasks)
 }
 
-#[get("/read_by_id/<id>")]
-pub fn task_read_by_id(_token: ApiToken, id: i32) -> Json<Task> {
-    let tasks = match read() {
-        Ok(ts) => ts,
-        Err(_) => Vec::new()
-    };
-
-    let mut tasks = tasks.into_iter()
-        .filter(|t| t.id == id)
-        .collect::<Vec<Task>>();
-
-    let task = tasks.pop().unwrap();
-    Json(task)
-}
-
 #[delete("/delete/<id>")]
-pub fn task_delete(_token: ApiToken, id: i32) -> Json<TaskStatus> {
+pub fn task_delete(_token: APIToken, id: i32) -> Json<TaskStatus> {
     let status = match delete(id) {
         Ok(()) => TaskStatus::default(),
         Err(e) => TaskStatus::set_db_api_err_simple(e)
@@ -80,7 +65,7 @@ pub fn task_delete(_token: ApiToken, id: i32) -> Json<TaskStatus> {
 }
 
 #[post("/create", format = "json", data = "<info>")]
-pub fn task_create(token: ApiToken, mut info: Json<NewTask>) -> Json<TaskStatus> {
+pub fn task_create(token: APIToken, mut info: Json<NewTask>) -> Json<TaskStatus> {
     let pre_status = match device::read() {
         Ok(ds) => {
             let ds = ds.into_iter()
@@ -107,7 +92,7 @@ pub fn task_create(token: ApiToken, mut info: Json<NewTask>) -> Json<TaskStatus>
 }
 
 #[put("/update/<id>", format = "json", data = "<info>")]
-pub fn task_update(_token: ApiToken, id: i32, info: Json<NewTask>) -> Json<TaskStatus> {
+pub fn task_update(_token: APIToken, id: i32, info: Json<NewTask>) -> Json<TaskStatus> {
     let status = match update(&info.into_inner(), id) {
         Ok(()) => TaskStatus::default(),
         Err(e) => TaskStatus::set_db_api_err_simple(e)
@@ -116,11 +101,34 @@ pub fn task_update(_token: ApiToken, id: i32, info: Json<NewTask>) -> Json<TaskS
     Json(status)
 }
 
-#[post("/execute", format = "json", data = "<info>")]
-pub fn task_execute(_token: ApiToken, info: Json<Task>, core: State<Option<TcpStream>>)
-    -> Json<ExecuteResult> {
+#[get("/reload/<token>")]
+pub fn task_reload(_token: APIToken, token: String, core: State<Option<TcpStream>>)
+                   -> Json<OpResult> {
     if core.inner().is_none() {
-        return Json(ExecuteResult::CoreOffline);
+        return Json(OpResult::CoreOffline);
+    }
+
+    let mut core = core.inner().as_ref().unwrap();
+    let buf = serde_json::to_string(&Operation::Reload(token.clone())).unwrap();
+
+    let result = match core.write(buf.as_bytes()) {
+        Ok(_) => {
+            let mut buf = [0; 1024];
+            let len = core.read(&mut buf).unwrap();
+            let result = core::str::from_utf8(&buf[0..len]).unwrap();
+            serde_json::from_str(&result).unwrap()
+        }
+        Err(_) => OpResult::CoreOffline,
+    };
+
+    Json(result)
+}
+
+#[post("/execute", format = "json", data = "<info>")]
+pub fn task_execute(_token: APIToken, info: Json<Task>, core: State<Option<TcpStream>>)
+                    -> Json<OpResult> {
+    if core.inner().is_none() {
+        return Json(OpResult::CoreOffline);
     }
 
     let mut core = core.inner().as_ref().unwrap();
@@ -134,7 +142,7 @@ pub fn task_execute(_token: ApiToken, info: Json<Task>, core: State<Option<TcpSt
             let result = core::str::from_utf8(&buf[0..len]).unwrap();
             serde_json::from_str(&result).unwrap()
         }
-        Err(_) => ExecuteResult::CoreOffline,
+        Err(_) => OpResult::CoreOffline,
     };
 
     Json(result)

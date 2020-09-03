@@ -5,7 +5,7 @@ use status_protoc::status::console::device::DeviceStatus;
 use status_protoc::my_trait::StatusTrait;
 use uuid::Uuid;
 use crate::user::tools::check_response;
-use crate::user::auth::ApiToken;
+use crate::user::auth::APIToken;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewDevice {
@@ -32,7 +32,7 @@ pub struct Device {
 }
 
 #[get("/read")]
-pub fn device_read(token: ApiToken) -> Json<Vec<Device>> {
+pub fn device_read(token: APIToken) -> Json<Vec<Device>> {
     let devices = match read() {
         Ok(ts) => ts,
         Err(_) => Vec::new()
@@ -46,7 +46,7 @@ pub fn device_read(token: ApiToken) -> Json<Vec<Device>> {
 }
 
 #[delete("/delete/<token>")]
-pub fn device_delete(_token: ApiToken, token: String) -> Json<DeviceStatus> {
+pub fn device_delete(_token: APIToken, token: String) -> Json<DeviceStatus> {
     let status = match delete(&token) {
         Ok(()) => DeviceStatus::default(),
         Err(e) => DeviceStatus::set_db_api_err_simple(e)
@@ -56,7 +56,7 @@ pub fn device_delete(_token: ApiToken, token: String) -> Json<DeviceStatus> {
 }
 
 #[post("/create", format = "json", data = "<info>")]
-pub fn device_create(token: ApiToken, info: Json<NewDevice>) -> Json<DeviceStatus> {
+pub fn device_create(token: APIToken, info: Json<NewDevice>) -> Json<DeviceStatus> {
     let mut device = info.into_inner().to_device();
     device.owner = token.0;
     let status = match create(&device) {
@@ -68,7 +68,7 @@ pub fn device_create(token: ApiToken, info: Json<NewDevice>) -> Json<DeviceStatu
 }
 
 #[put("/update", format = "json", data = "<info>")]
-pub fn device_update(_token: ApiToken, info: Json<Device>) -> Json<DeviceStatus> {
+pub fn device_update(_token: APIToken, info: Json<Device>) -> Json<DeviceStatus> {
     let status = match update(&info.into_inner()) {
         Ok(()) => DeviceStatus::default(),
         Err(e) => DeviceStatus::set_db_api_err_simple(e)

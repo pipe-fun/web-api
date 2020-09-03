@@ -6,10 +6,10 @@ use std::collections::BTreeMap;
 use sha2::Sha256;
 use rocket_contrib::json::JsonValue;
 
-pub struct ApiToken(pub String);
+pub struct APIToken(pub String);
 
 #[get("/auth")]
-pub fn authorized(token: ApiToken) -> JsonValue {
+pub fn authorized(token: APIToken) -> JsonValue {
     let name = token.0;
     json!( { "authorized": true, "user_name": name } )
 }
@@ -38,15 +38,15 @@ pub fn read_token(token: &str) -> Result<String, String> {
     }
 }
 
-impl<'a, 'r> FromRequest<'a, 'r> for ApiToken {
+impl<'a, 'r> FromRequest<'a, 'r> for APIToken {
     type Error = ();
 
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<ApiToken, ()> {
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<APIToken, ()> {
         let cookies = request.cookies();
         let token = cookies.get("token");
         if token.is_none() { return Outcome::Forward(()); }
         match read_token(token.unwrap().value()) {
-            Ok(claim) => Outcome::Success(ApiToken(claim)),
+            Ok(claim) => Outcome::Success(APIToken(claim)),
             Err(_) => Outcome::Forward(())
         }
     }

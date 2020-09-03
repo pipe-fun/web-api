@@ -1,8 +1,8 @@
-use crate::user::auth::ApiToken;
+use crate::user::auth::APIToken;
 use rocket_contrib::json::JsonValue;
 
 #[get("/test")]
-pub fn test(token: ApiToken) -> String {
+pub fn test(token: APIToken) -> String {
     format!("hello {}", token.0)
 }
 
