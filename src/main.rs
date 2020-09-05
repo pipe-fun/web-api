@@ -15,8 +15,11 @@ use rocket::Config;
 use rocket::config::Environment;
 use rocket_cors::{AllowedOrigins, Origins};
 use std::collections::HashSet;
+use std::net::TcpStream;
+use std::io::Write;
 
 use crate::user::login::static_rocket_route_info_for_login;
+use crate::user::logout::static_rocket_route_info_for_logout;
 use crate::user::auth::static_rocket_route_info_for_authorized;
 use crate::user::auth::static_rocket_route_info_for_not_authorized;
 use crate::user::register::static_rocket_route_info_for_register;
@@ -38,13 +41,10 @@ use crate::console::device::static_rocket_route_info_for_device_read;
 use crate::console::device::static_rocket_route_info_for_device_create;
 use crate::console::device::static_rocket_route_info_for_device_update;
 use crate::console::device::static_rocket_route_info_for_device_delete;
-use std::net::TcpStream;
-use std::io::Write;
-
 
 fn rocket_web_api() -> rocket::Rocket {
     let mut config = Config::new(Environment::Development);
-    config.set_address("0.0.0.0").unwrap();
+    config.set_address("127.0.0.1").unwrap();
     config.set_port(8888);
 
     let mut _origin = HashSet::new();
@@ -62,7 +62,7 @@ fn rocket_web_api() -> rocket::Rocket {
 
     rocket::custom(config)
         .mount("/user",
-               routes![login, authorized, not_authorized, register
+               routes![login, logout, authorized, not_authorized, register
                      , active, send_check_code, update_password])
         .mount("/console", routes![test, test_error])
         .mount("/console/task", routes![task_read, task_create, task_update, task_delete, task_execute, task_reload])

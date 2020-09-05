@@ -7,3 +7,4 @@ pub mod active_code;
 pub mod check_code;
 pub mod active;
 pub mod new_password;
+pub mod logout;
