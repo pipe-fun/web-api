@@ -27,9 +27,6 @@ use crate::user::active::static_rocket_route_info_for_active;
 use crate::user::new_password::static_rocket_route_info_for_send_check_code;
 use crate::user::new_password::static_rocket_route_info_for_update_password;
 
-use crate::console::test::static_rocket_route_info_for_test;
-use crate::console::test::static_rocket_route_info_for_test_error;
-
 use crate::console::task::static_rocket_route_info_for_task_read;
 use crate::console::task::static_rocket_route_info_for_task_create;
 use crate::console::task::static_rocket_route_info_for_task_update;
@@ -64,7 +61,6 @@ fn rocket_web_api() -> rocket::Rocket {
         .mount("/user",
                routes![login, logout, authorized, not_authorized, register
                      , active, send_check_code, update_password])
-        .mount("/console", routes![test, test_error])
         .mount("/console/task", routes![task_read, task_create, task_update, task_delete, task_execute, task_reload])
         .mount("/console/device", routes![device_read, device_create, device_update, device_delete])
         .attach(cors)
