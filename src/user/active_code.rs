@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use status_protoc::status::user::active::{ActiveStatus, _ActiveStatus};
+use status_protoc::status::user::register::{RegisterStatus, _RegisterStatus};
 use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use status_protoc::my_trait::StatusTrait;
 use crate::smtp;
@@ -20,16 +20,16 @@ impl ActiveCode {
         }
     }
 
-    pub fn to_db_and_email(&self, email: &str) -> Result<ActiveStatus, ActiveStatus> {
+    pub fn to_db_and_email(&self, email: &str) -> Result<RegisterStatus, RegisterStatus> {
         if let Err(_) = smtp::check_email(&email) {
-            return Err(ActiveStatus::default().set_status(_ActiveStatus::InvalidEmailAddress));
+            return Err(RegisterStatus::default().set_status(_RegisterStatus::InvalidEmailAddress));
         }
         if let Err(_) = smtp::send_email(email, EmailType::Active, &self.code) {
-            return Err(ActiveStatus::default().set_status(_ActiveStatus::SendEmailError));
+            return Err(RegisterStatus::default().set_status(_RegisterStatus::SendEmailError));
         }
         match create(self) {
-            Ok(()) => Ok(ActiveStatus::default()),
-            Err(e) => Err(ActiveStatus::set_db_api_err_simple(e))
+            Ok(()) => Ok(RegisterStatus::default()),
+            Err(e) => Err(RegisterStatus::set_db_api_err_simple(e))
         }
     }
 
@@ -70,7 +70,7 @@ pub fn create(code: &ActiveCode) -> Result<(), DbAPIStatus> {
 pub fn delete(active_code: &ActiveCode) -> Result<(), DbAPIStatus> {
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
     let uri = format!("http://localhost:1122/api/user/active_code/delete/{}", active_code.code());
-    match client.delete(&uri).json(active_code).send() {
+    match client.delete(&uri).send() {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => check_response(status),

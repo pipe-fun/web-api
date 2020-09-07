@@ -1,7 +1,6 @@
 use rocket_contrib::json::Json;
 use status_protoc::status::user::register::{RegisterStatus, _RegisterStatus};
 use status_protoc::my_trait::StatusTrait;
-use status_protoc::status::user::active::_ActiveStatus;
 use crate::user::{tools, user};
 use crate::user::user::User;
 use crate::user::active_code::ActiveCode;
@@ -27,19 +26,7 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
 
     let check_to_email = || -> RegisterStatus {
         let ac = ActiveCode::new("code".into(), info.user_name.clone());
-        if let Err(s) = ac.to_db_and_email(&info.user_email) {
-            match s.status() {
-                _ActiveStatus::SendEmailError =>
-                    RegisterStatus::default().set_status(_RegisterStatus::SendEmailError),
-                _ActiveStatus::InvalidEmailAddress =>
-                    RegisterStatus::default().set_status(_RegisterStatus::InvalidEmailAddress),
-                _ActiveStatus::DbAPIError =>
-                    RegisterStatus::set_db_api_err_simple(s.db_api_status()),
-                _ => RegisterStatus::default()
-            }
-        } else {
-            RegisterStatus::default()
-        }
+        ac.to_db_and_email(&info.user_email).unwrap()
     };
 
     if !f_u.is_empty() {
