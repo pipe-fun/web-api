@@ -1,3 +1,4 @@
+use uuid::Uuid;
 use rocket_contrib::json::Json;
 use status_protoc::status::user::register::{RegisterStatus, _RegisterStatus};
 use status_protoc::my_trait::StatusTrait;
@@ -25,7 +26,8 @@ pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatu
     };
 
     let check_to_email = || -> RegisterStatus {
-        let ac = ActiveCode::new("code".into(), info.user_name.clone());
+        let uuid = Uuid::new_v4();
+        let ac = ActiveCode::new(uuid.to_string(), info.user_name.clone());
         ac.to_db_and_email(&info.user_email).unwrap()
     };
 
