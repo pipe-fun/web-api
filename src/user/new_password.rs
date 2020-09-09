@@ -1,5 +1,5 @@
 use rocket_contrib::json::Json;
-use rand::Rng;
+use uuid::Uuid;
 use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
 use status_protoc::my_trait::StatusTrait;
 use status_protoc::status::user::change::{ChangeStatus, _ChangeStatus};
@@ -11,7 +11,7 @@ use crate::user::check_code::CheckCode;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewPassword {
-    code: i32,
+    code: String,
     new_password: String,
 }
 
@@ -30,8 +30,7 @@ pub fn send_check_code(email: String) -> Json<CheckStatus> {
     let op = |users: Vec<User>| -> CheckStatus {
         match valid(users) {
             Some(u) => {
-                let mut rng = rand::thread_rng();
-                let code = CheckCode::new(rng.gen_range(10000, 99999)
+                let code = CheckCode::new(Uuid::new_v4().to_string()
                                           , u.user_name.clone());
                 if let Err(e) = code.to_db_and_email(&email) { e } else {
                     CheckStatus::default()

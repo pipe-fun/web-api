@@ -9,12 +9,12 @@ use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
 pub struct CheckCode {
-    code: i32,
+    code: String,
     owner: String,
 }
 
 impl CheckCode {
-    pub fn new(code: i32, owner: String) -> CheckCode {
+    pub fn new(code: String, owner: String) -> CheckCode {
         CheckCode {
             code,
             owner,
@@ -34,8 +34,8 @@ impl CheckCode {
         }
     }
 
-    pub fn code(&self) -> i32 {
-        self.code
+    pub fn code(&self) -> String {
+        self.code.clone()
     }
 
     pub fn owner(&self) -> String {
@@ -72,7 +72,7 @@ pub fn create(code: &CheckCode) -> Result<(), DbAPIStatus> {
 pub fn delete(code: &CheckCode) -> Result<(), DbAPIStatus> {
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
     let uri = format!("http://localhost:1122/api/user/check_code/delete/{}", code.code());
-    match client.delete(&uri).json(code).send() {
+    match client.delete(&uri).send() {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => check_response(status),
