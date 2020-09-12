@@ -8,11 +8,9 @@ use crate::user::active_code::ActiveCode;
 #[get("/active/<code>")]
 pub fn active(code: String) -> Json<ActiveStatus> {
     let op = |owner: &str| -> Result<(), DbAPIStatus> {
-        match user::read() {
+        match user::read_by_name(owner) {
             Ok(mut users) => {
-                let user = users
-                    .iter_mut()
-                    .find(|u| u.user_name.eq(owner)).unwrap();
+                let user = users.get_mut(0).unwrap();
                 user.set_active(true);
                 user::update(user)
             }
@@ -32,15 +30,13 @@ pub fn active(code: String) -> Json<ActiveStatus> {
         }
     };
 
-    match active_code::read() {
+    match active_code::read_by_code(&code) {
         Err(e) => Json(ActiveStatus::set_db_api_err_simple(e)),
-        Ok(v_ac) => {
-            if let Some(ac) = v_ac
-                .iter()
-                .find(|a| a.code().eq(&code)) {
-                Json(get_status(ac))
-            } else {
+        Ok(ac) => {
+            if ac.is_empty() {
                 Json(ActiveStatus::default().set_status(_ActiveStatus::InvalidCode))
+            } else {
+                Json(get_status(ac.get(0).unwrap()))
             }
         }
     }

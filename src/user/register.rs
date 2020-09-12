@@ -13,6 +13,17 @@ pub struct RegisterInfo {
     pub user_email: String,
 }
 
+impl RegisterInfo {
+    pub fn to_user(&self) -> User {
+        User {
+            user_name: self.user_name.clone(),
+            user_password: self.user_password.clone(),
+            user_email: self.user_email.clone(),
+            active: false
+        }
+    }
+}
+
 pub fn check_rules(users: Vec<User>, info: &Json<RegisterInfo>) -> RegisterStatus {
     let f_u: Vec<User> = users.into_iter().filter(|u|
         u.user_name.eq(&info.user_name) || u.user_email.eq(&info.user_email)).collect();
@@ -55,7 +66,7 @@ pub fn register(mut info: Json<RegisterInfo>) -> Json<RegisterStatus> {
         return Json(status);
     }
 
-    let status = match user::create(&info.into_inner()) {
+    let status = match user::create(&info.into_inner().to_user()) {
         Ok(()) => RegisterStatus::default(),
         Err(e) => RegisterStatus::set_db_api_err_simple(e)
     };

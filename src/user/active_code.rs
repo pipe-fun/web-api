@@ -40,8 +40,9 @@ impl ActiveCode {
     }
 }
 
-pub fn read() -> Result<Vec<ActiveCode>, DbAPIStatus> {
-    request::get_all("http://localhost:1122/active_code/read")
+pub fn read_by_code(code: &str) -> Result<Vec<ActiveCode>, DbAPIStatus> {
+    let url = format!("http://localhost:1122/active_code/read_by_code/{}", code);
+    request::get(&url)
 }
 
 pub fn create(code: &ActiveCode) -> Result<(), DbAPIStatus> {

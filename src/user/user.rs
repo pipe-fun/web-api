@@ -1,5 +1,4 @@
 use status_protoc::status::db_api::DbAPIStatus;
-use crate::user::register::RegisterInfo;
 use crate::request;
 
 #[derive(Serialize, Deserialize, Default)]
@@ -20,7 +19,7 @@ impl User {
     }
 }
 
-pub fn create(info: &RegisterInfo) -> Result<(), DbAPIStatus> {
+pub fn create(info: &User) -> Result<(), DbAPIStatus> {
     request::post("http://localhost:1122/user/create", info)
 }
 
