@@ -26,8 +26,8 @@ use crate::user::auth::static_rocket_route_info_for_authorized;
 use crate::user::auth::static_rocket_route_info_for_not_authorized;
 use crate::user::register::static_rocket_route_info_for_register;
 use crate::user::active::static_rocket_route_info_for_active;
-use crate::user::new_password::static_rocket_route_info_for_send_check_code;
-use crate::user::new_password::static_rocket_route_info_for_update_password;
+use crate::user::reset_password::static_rocket_route_info_for_send_check_code;
+use crate::user::reset_password::static_rocket_route_info_for_update_password;
 
 use crate::console::task::static_rocket_route_info_for_task_read;
 use crate::console::task::static_rocket_route_info_for_task_create;
