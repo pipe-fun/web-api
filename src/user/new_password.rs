@@ -4,10 +4,11 @@ use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
 use status_protoc::my_trait::StatusTrait;
 use status_protoc::status::user::change::{ChangeStatus, _ChangeStatus};
 use status_protoc::status::db_api::DbAPIStatus;
-use crate::user::{check_code, user, tools};
-use crate::user::user::User;
 use crate::smtp;
-use crate::user::check_code::CheckCode;
+use crate::types::user::User;
+use crate::types::check_code::CheckCode;
+use crate::types::{user, check_code};
+use crate::user::tools;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewPassword {

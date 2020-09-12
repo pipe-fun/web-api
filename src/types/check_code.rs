@@ -2,7 +2,6 @@ use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
 use status_protoc::status::db_api::DbAPIStatus;
 use status_protoc::my_trait::StatusTrait;
 use crate::{smtp, request};
-use crate::user::check_code;
 use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
@@ -26,7 +25,7 @@ impl CheckCode {
         if let Err(_) = smtp::send_email(email, EmailType::ChangePassword, &self.code.to_string()) {
             return Err(CheckStatus::default().set_status(_CheckStatus::SendEmailError));
         }
-        match check_code::create(self) {
+        match create(self) {
             Ok(()) => Ok(CheckStatus::default()),
             Err(e) => Err(CheckStatus::set_db_api_err_simple(e))
         }

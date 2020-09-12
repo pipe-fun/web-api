@@ -2,8 +2,8 @@ use rocket_contrib::json::Json;
 use status_protoc::status::user::active::{ActiveStatus, _ActiveStatus};
 use status_protoc::status::db_api::DbAPIStatus;
 use status_protoc::my_trait::StatusTrait;
-use crate::user::{user, active_code};
-use crate::user::active_code::ActiveCode;
+use crate::types::{user, active_code};
+use crate::types::active_code::ActiveCode;
 
 #[get("/active/<code>")]
 pub fn active(code: String) -> Json<ActiveStatus> {

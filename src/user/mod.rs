@@ -1,10 +1,7 @@
 pub mod login;
 pub mod register;
 pub mod tools;
-pub mod user;
 pub mod auth;
-pub mod active_code;
-pub mod check_code;
 pub mod active;
 pub mod new_password;
 pub mod logout;

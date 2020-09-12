@@ -3,8 +3,9 @@ use rocket::http::{Cookie, Cookies};
 use rocket::http::SameSite;
 use status_protoc::status::user::login::{LoginStatus, Data, _LoginStatus};
 use status_protoc::my_trait::StatusTrait;
-use crate::user::{tools, auth, user};
-use crate::user::user::User;
+use crate::user::{tools, auth};
+use crate::types::user::User;
+use crate::types::user;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {

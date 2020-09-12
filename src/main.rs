@@ -11,6 +11,7 @@ mod user;
 mod console;
 mod smtp;
 mod request;
+mod types;
 
 use rocket::Config;
 use rocket::config::Environment;
