@@ -1,6 +1,5 @@
 use chrono::{NaiveDateTime, NaiveTime};
-use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
-use std::collections::HashMap;
+use status_protoc::status::db_api::DbAPIStatus;
 use rocket::State;
 use std::net::TcpStream;
 use rocket_contrib::json::Json;
@@ -11,7 +10,7 @@ use std::io::{Write, Read};
 use crate::console::device;
 use crate::console::device::Device;
 use crate::user::auth::APIToken;
-use crate::user::tools::check_response;
+use crate::request;
 
 #[derive(Serialize, Deserialize)]
 pub struct Task {
@@ -149,54 +148,19 @@ pub fn task_execute(_token: APIToken, info: Json<Task>, core: State<Option<TcpSt
 }
 
 pub fn create(info: &NewTask) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.post("http://localhost:1122/api/task/create").json(&info).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-    }
+    request::post("http://localhost:1122/task/create", info)
 }
 
 pub fn read() -> Result<Vec<Task>, DbAPIStatus> {
-    match reqwest::blocking::get("http://localhost:1122/api/task/read") {
-        Ok(response) => {
-            match response.json::<Vec<Task>>() {
-                Ok(task) => Ok(task),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    request::get_all("http://localhost:1122/task/read")
 }
 
 pub fn delete(id: i32) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    let uri = format!("http://localhost:1122/api/task/delete/{}", id);
-    match client.delete(&uri).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string())),
-    }
+    let url = format!("http://localhost:1122/task/delete/{}", id);
+    request::delete(&url)
 }
 
 pub fn update(task: &NewTask, id: i32) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    let uri = format!("http://localhost:1122/api/task/update/{}", id);
-    match client.put(&uri).json(task).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    let url = format!("http://localhost:1122/task/update/{}", id);
+    request::put(&url, task)
 }

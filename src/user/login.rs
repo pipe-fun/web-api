@@ -33,9 +33,8 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
         cookies.add(cookie);
     };
 
-    let mut op = |users: Vec<User>| -> LoginStatus {
-        if let Some(u) = users
-            .into_iter()
+    let mut op = |user: Vec<User>| -> LoginStatus {
+        if let Some(u) = user.into_iter()
             .filter(|u| u.active)
             .find(|u| info.equal(u)) {
 
@@ -47,7 +46,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
         }
     };
 
-    let status = match user::read() {
+    let status = match user::read_by_name(&info.user_name) {
         Ok(u) => op(u),
         Err(e) => LoginStatus::set_db_api_err_simple(e)
     };

@@ -10,6 +10,7 @@ extern crate rocket_contrib;
 mod user;
 mod console;
 mod smtp;
+mod request;
 
 use rocket::Config;
 use rocket::config::Environment;

@@ -1,9 +1,7 @@
-use std::collections::HashMap;
 use status_protoc::status::user::register::{RegisterStatus, _RegisterStatus};
-use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use status_protoc::status::db_api::DbAPIStatus;
 use status_protoc::my_trait::StatusTrait;
-use crate::smtp;
-use crate::user::tools::check_response;
+use crate::{smtp, request};
 use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
@@ -43,40 +41,14 @@ impl ActiveCode {
 }
 
 pub fn read() -> Result<Vec<ActiveCode>, DbAPIStatus> {
-    match reqwest::blocking::get("http://localhost:1122/api/user/active_code/read") {
-        Ok(response) => {
-            match response.json::<Vec<ActiveCode>>() {
-                Ok(active_code) => Ok(active_code),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    request::get_all("http://localhost:1122/active_code/read")
 }
 
 pub fn create(code: &ActiveCode) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.post("http://localhost:1122/api/user/active_code/create").json(code).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    request::post("http://localhost:1122/active_code/create", code)
 }
 
 pub fn delete(active_code: &ActiveCode) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    let uri = format!("http://localhost:1122/api/user/active_code/delete/{}", active_code.code());
-    match client.delete(&uri).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    let url = format!("http://localhost:1122/active_code/delete/{}", active_code.code());
+    request::delete(&url)
 }

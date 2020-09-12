@@ -1,10 +1,8 @@
-use std::collections::HashMap;
 use status_protoc::status::user::check::{CheckStatus, _CheckStatus};
-use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
+use status_protoc::status::db_api::DbAPIStatus;
 use status_protoc::my_trait::StatusTrait;
-use crate::smtp;
+use crate::{smtp, request};
 use crate::user::check_code;
-use crate::user::tools::check_response;
 use crate::smtp::EmailType;
 
 #[derive(Serialize, Deserialize)]
@@ -45,40 +43,14 @@ impl CheckCode {
 
 
 pub fn read() -> Result<Vec<CheckCode>, DbAPIStatus> {
-    match reqwest::blocking::get("http://localhost:1122/api/user/check_code/read") {
-        Ok(response) => {
-            match response.json::<Vec<CheckCode>>() {
-                Ok(check_code) => Ok(check_code),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    request::get_all("http://localhost:1122/check_code/read")
 }
 
 pub fn create(code: &CheckCode) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.post("http://localhost:1122/api/user/check_code/create").json(code).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    request::post("http://localhost:1122/check_code/create", code)
 }
 
 pub fn delete(code: &CheckCode) -> Result<(), DbAPIStatus> {
-    let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    let uri = format!("http://localhost:1122/api/user/check_code/delete/{}", code.code());
-    match client.delete(&uri).send() {
-        Ok(response) => {
-            match response.json::<HashMap<String, String>>() {
-                Ok(status) => check_response(status),
-                Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::DataError, e.to_string()))
-            }
-        }
-        Err(e) => Err(DbAPIStatus::new(_DbAPIStatus::ConnectRefused, e.to_string()))
-    }
+    let url = format!("http://localhost:1122/check_code/delete/{}", code.code());
+    request::delete(&url)
 }
