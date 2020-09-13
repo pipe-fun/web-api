@@ -22,6 +22,7 @@ lettre = "0.9"
 lettre_email = "0.9"
 native-tls = "0.2"
 rocket_cors = "0.5.1"
+dotenv = "0.15.0"
 
 [dependencies.status-protoc]
 version = "0.1"

@@ -19,6 +19,9 @@ use rocket_cors::{AllowedOrigins, Origins};
 use std::collections::HashSet;
 use std::net::TcpStream;
 use std::io::Write;
+use std::env;
+use std::str::FromStr;
+use dotenv::dotenv;
 
 use crate::user::login::static_rocket_route_info_for_login;
 use crate::user::logout::static_rocket_route_info_for_logout;
@@ -42,13 +45,19 @@ use crate::console::device::static_rocket_route_info_for_device_update;
 use crate::console::device::static_rocket_route_info_for_device_delete;
 
 fn rocket_web_api() -> rocket::Rocket {
+    dotenv().ok();
+
+    let host = env::var("WEB_API_HOST").expect("WEB_API_HOST is not set in .env file");
+    let port = env::var("WEB_API_PORT").expect("WEB_API_PORT is not set in .env file");
+    let origins = env::var("CORS_ORIGINS").expect("CORS_ORIGINS is not set in .env file");
+
     let mut config = Config::new(Environment::Development);
-    config.set_address("127.0.0.1").unwrap();
-    config.set_port(8888);
+    config.set_address(&host).unwrap();
+    config.set_port(u16::from_str(&port).unwrap_or_else(|_| 8888));
 
     let mut _origin = HashSet::new();
     let mut origin = Origins::default();
-    _origin.insert("http://127.0.0.1:8080".to_string());
+    _origin.insert(origins);
     origin.exact = Some(_origin);
 
     let cors_options = rocket_cors::CorsOptions::default()
@@ -69,9 +78,13 @@ fn rocket_web_api() -> rocket::Rocket {
 }
 
 fn main() {
-    let core = TcpStream::connect("127.0.0.1:4321");
+    let host = env::var("WEB_TO_CORE_HOST").expect("WEB_TO_CORE_HOST is not set in .env file");
+    let port = env::var("WEB_TO_CORE_PORT").expect("WEB_TO_CORE_PORT is not set in .env file");
+    let key = env::var("WEB_TO_CORE_KEY").expect("WEB_TO_CORE_KEY is not set in .env file");
+
+    let core = TcpStream::connect(format!("{}:{}", host, port));
     let core = match core {
-        Ok(mut s) => if let Ok(_) = s.write("key".as_bytes()) { Some(s) } else { None },
+        Ok(mut s) => if let Ok(_) = s.write(key.as_bytes()) { Some(s) } else { None },
         Err(_) => None
     };
     rocket_web_api().manage(core).launch();
