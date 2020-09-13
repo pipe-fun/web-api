@@ -20,19 +20,19 @@ impl User {
 }
 
 pub fn create(info: &User) -> Result<(), DbAPIStatus> {
-    request::post("http://localhost:1122/user/create", info)
+    request::post("/user/create", info)
 }
 
 pub fn read() -> Result<Vec<User>, DbAPIStatus> {
-    request::get_all("http://localhost:1122/user/read")
+    request::get_all("/user/read")
 }
 
 pub fn read_by_name(name: &str) -> Result<Vec<User>, DbAPIStatus> {
-    let url = format!("http://localhost:1122/user/read_by_name/{}", name);
+    let url = format!("/user/read_by_name/{}", name);
     request::get(&url)
 }
 
 pub fn update(user: &User) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/user/update/{}", user.user_name);
+    let url = format!("/user/update/{}", user.user_name);
     request::put(&url, user)
 }

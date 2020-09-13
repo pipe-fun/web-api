@@ -42,14 +42,14 @@ impl CheckCode {
 
 
 pub fn read() -> Result<Vec<CheckCode>, DbAPIStatus> {
-    request::get_all("http://localhost:1122/check_code/read")
+    request::get_all("/check_code/read")
 }
 
 pub fn create(code: &CheckCode) -> Result<(), DbAPIStatus> {
-    request::post("http://localhost:1122/check_code/create", code)
+    request::post("/check_code/create", code)
 }
 
 pub fn delete(code: &CheckCode) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/check_code/delete/{}", code.code());
+    let url = format!("/check_code/delete/{}", code.code());
     request::delete(&url)
 }

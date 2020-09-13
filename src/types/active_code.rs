@@ -41,15 +41,15 @@ impl ActiveCode {
 }
 
 pub fn read_by_code(code: &str) -> Result<Vec<ActiveCode>, DbAPIStatus> {
-    let url = format!("http://localhost:1122/active_code/read_by_code/{}", code);
+    let url = format!("/active_code/read_by_code/{}", code);
     request::get(&url)
 }
 
 pub fn create(code: &ActiveCode) -> Result<(), DbAPIStatus> {
-    request::post("http://localhost:1122/active_code/create", code)
+    request::post("/active_code/create", code)
 }
 
 pub fn delete(active_code: &ActiveCode) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/active_code/delete/{}", active_code.code());
+    let url = format!("/active_code/delete/{}", active_code.code());
     request::delete(&url)
 }

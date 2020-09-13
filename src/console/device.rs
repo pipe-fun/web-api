@@ -77,19 +77,19 @@ pub fn device_update(_token: APIToken, info: Json<Device>) -> Json<DeviceStatus>
 }
 
 pub fn create(info: &Device) -> Result<(), DbAPIStatus> {
-    request::post("http://localhost:1122/device/create", info)
+    request::post("/device/create", info)
 }
 
 pub fn read() -> Result<Vec<Device>, DbAPIStatus> {
-    request::get_all("http://localhost:1122/device/read")
+    request::get_all("/device/read")
 }
 
 pub fn delete(token: &str) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/device/delete/{}", token);
+    let url = format!("/device/delete/{}", token);
     request::delete(&url)
 }
 
 pub fn update(device: &Device) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/device/update/{}", device.token);
+    let url = format!("/device/update/{}", device.token);
     request::put(&url, device)
 }

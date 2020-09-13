@@ -6,6 +6,7 @@ use status_protoc::my_trait::StatusTrait;
 use crate::user::{tools, auth};
 use crate::types::user::User;
 use crate::types::user;
+use crate::request::COOKIE_DOMAIN;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {
@@ -24,7 +25,7 @@ impl LoginInfo {
 pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatus> {
     let mut gen_cookie = |token: &str| {
         let cookie = Cookie::build("token", token.to_string())
-            .domain("127.0.0.1")
+            .domain(COOKIE_DOMAIN)
             .expires(time::now())
             .max_age(time::Duration::minutes(60 * 24))
             .path("/")

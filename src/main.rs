@@ -78,6 +78,8 @@ fn rocket_web_api() -> rocket::Rocket {
 }
 
 fn main() {
+    dotenv().ok();
+
     let host = env::var("WEB_TO_CORE_HOST").expect("WEB_TO_CORE_HOST is not set in .env file");
     let port = env::var("WEB_TO_CORE_PORT").expect("WEB_TO_CORE_PORT is not set in .env file");
     let key = env::var("WEB_TO_CORE_KEY").expect("WEB_TO_CORE_KEY is not set in .env file");

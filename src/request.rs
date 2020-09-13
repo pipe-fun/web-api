@@ -2,10 +2,15 @@ use status_protoc::status::db_api::{DbAPIStatus, _DbAPIStatus};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap;
+use dotenv_codegen::dotenv;
 use crate::user::tools::check_response;
 
+const API_ROOT: &str = dotenv!("DB_API");
+pub const COOKIE_DOMAIN: &str = dotenv!("COOKIE_DOMAIN");
+
 pub fn get_all<T: DeserializeOwned>(url: &str) -> Result<Vec<T>, DbAPIStatus> {
-    match reqwest::blocking::get(url) {
+    let url = format!("{}{}", API_ROOT, url);
+    match reqwest::blocking::get(&url) {
         Ok(response) => {
             match response.json::<Vec<T>>() {
                 Ok(data) => Ok(data),
@@ -17,7 +22,8 @@ pub fn get_all<T: DeserializeOwned>(url: &str) -> Result<Vec<T>, DbAPIStatus> {
 }
 
 pub fn get<T: DeserializeOwned>(url: &str) -> Result<Vec<T>, DbAPIStatus> {
-    match reqwest::blocking::get(url) {
+    let url = format!("{}{}", API_ROOT, url);
+    match reqwest::blocking::get(&url) {
         Ok(response) => {
             match response.json::<T>() {
                 Ok(data) => Ok(vec![data]),
@@ -29,8 +35,9 @@ pub fn get<T: DeserializeOwned>(url: &str) -> Result<Vec<T>, DbAPIStatus> {
 }
 
 pub fn post<T: Serialize>(url: &str, data: &T) -> Result<(), DbAPIStatus> {
+    let url = format!("{}{}", API_ROOT, url);
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.post(url).json(data).send() {
+    match client.post(&url).json(data).send() {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => check_response(status),
@@ -42,8 +49,9 @@ pub fn post<T: Serialize>(url: &str, data: &T) -> Result<(), DbAPIStatus> {
 }
 
 pub fn put<T: Serialize>(url: &str, data: &T) -> Result<(), DbAPIStatus> {
+    let url = format!("{}{}", API_ROOT, url);
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.put(url).json(data).send() {
+    match client.put(&url).json(data).send() {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => check_response(status),
@@ -55,8 +63,9 @@ pub fn put<T: Serialize>(url: &str, data: &T) -> Result<(), DbAPIStatus> {
 }
 
 pub fn delete(url: &str) -> Result<(), DbAPIStatus> {
+    let url = format!("{}{}", API_ROOT, url);
     let client = reqwest::blocking::ClientBuilder::new().build().unwrap();
-    match client.delete(url).send() {
+    match client.delete(&url).send() {
         Ok(response) => {
             match response.json::<HashMap<String, String>>() {
                 Ok(status) => check_response(status),

@@ -148,19 +148,19 @@ pub fn task_execute(_token: APIToken, info: Json<Task>, core: State<Option<TcpSt
 }
 
 pub fn create(info: &NewTask) -> Result<(), DbAPIStatus> {
-    request::post("http://localhost:1122/task/create", info)
+    request::post("/task/create", info)
 }
 
 pub fn read() -> Result<Vec<Task>, DbAPIStatus> {
-    request::get_all("http://localhost:1122/task/read")
+    request::get_all("/task/read")
 }
 
 pub fn delete(id: i32) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/task/delete/{}", id);
+    let url = format!("/task/delete/{}", id);
     request::delete(&url)
 }
 
 pub fn update(task: &NewTask, id: i32) -> Result<(), DbAPIStatus> {
-    let url = format!("http://localhost:1122/task/update/{}", id);
+    let url = format!("/task/update/{}", id);
     request::put(&url, task)
 }
