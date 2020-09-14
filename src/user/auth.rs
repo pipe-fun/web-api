@@ -5,6 +5,9 @@ use hmac::{Hmac, NewMac};
 use std::collections::BTreeMap;
 use sha2::Sha256;
 use rocket_contrib::json::JsonValue;
+use dotenv_codegen::dotenv;
+
+const SHA256_VAR_KEY: &str = dotenv!("SHA256_VAR_KEY");
 
 pub struct APIToken(pub String);
 
@@ -20,14 +23,14 @@ pub fn not_authorized() -> JsonValue {
 }
 
 pub fn gen_token(user_name: &str) -> String {
-    let key: Hmac<Sha256> = Hmac::new_varkey(b"some-secret").unwrap();
+    let key: Hmac<Sha256> = Hmac::new_varkey(SHA256_VAR_KEY.as_bytes()).unwrap();
     let mut claims = BTreeMap::new();
     claims.insert("sub", user_name);
     claims.sign_with_key(&key).unwrap()
 }
 
 pub fn read_token(token: &str) -> Result<String, String> {
-    let key: Hmac<Sha256> = Hmac::new_varkey(b"some-secret").unwrap();
+    let key: Hmac<Sha256> = Hmac::new_varkey(SHA256_VAR_KEY.as_bytes()).unwrap();
     let claims: BTreeMap<String, String> = token.verify_with_key(&key)
         .map_err(|e| e.to_string())?;
 
