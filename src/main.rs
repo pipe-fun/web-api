@@ -61,7 +61,7 @@ fn rocket_web_api() -> rocket::Rocket {
     origin.exact = Some(_origin);
 
     let cors_options = rocket_cors::CorsOptions::default()
-        .max_age(Some(5 * 60))
+        .max_age(Some(30 * 24 * 60 * 60))
         .allowed_origins(AllowedOrigins::Some(origin))
         .send_wildcard(false)
         .allow_credentials(true);
