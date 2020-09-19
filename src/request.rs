@@ -7,6 +7,7 @@ use crate::user::tools::check_response;
 
 const API_ROOT: &str = dotenv!("DB_API");
 pub const COOKIE_DOMAIN: &str = dotenv!("COOKIE_DOMAIN");
+pub const COOKIE_MAX_AGE: &str = dotenv!("COOKIE_MAX_AGE");
 
 pub fn get_all<T: DeserializeOwned>(url: &str) -> Result<Vec<T>, DbAPIStatus> {
     let url = format!("{}{}", API_ROOT, url);

@@ -3,10 +3,11 @@ use rocket::http::{Cookie, Cookies};
 use rocket::http::SameSite;
 use status_protoc::status::user::login::{LoginStatus, Data, _LoginStatus};
 use status_protoc::my_trait::StatusTrait;
+use std::str::FromStr;
 use crate::user::{tools, auth};
 use crate::types::user::User;
 use crate::types::user;
-use crate::request::COOKIE_DOMAIN;
+use crate::request::{COOKIE_DOMAIN, COOKIE_MAX_AGE};
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginInfo {
@@ -27,7 +28,7 @@ pub fn login(mut cookies: Cookies<'_>, info: Json<LoginInfo>) -> Json<LoginStatu
         let cookie = Cookie::build("token", token.to_string())
             .domain(COOKIE_DOMAIN)
             .expires(time::now())
-            .max_age(time::Duration::minutes(60 * 24))
+            .max_age(time::Duration::seconds(i64::from_str(COOKIE_MAX_AGE).unwrap_or_else(|_| 3600)))
             .path("/")
             .same_site(SameSite::Strict)
             .http_only(true)
