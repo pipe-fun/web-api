@@ -50,6 +50,7 @@ fn rocket_web_api() -> rocket::Rocket {
     let host = env::var("WEB_API_HOST").expect("WEB_API_HOST is not set in .env file");
     let port = env::var("WEB_API_PORT").expect("WEB_API_PORT is not set in .env file");
     let origins = env::var("CORS_ORIGINS").expect("CORS_ORIGINS is not set in .env file");
+    let max_age = env::var("CORS_MAX_AGE").expect("CORS_MAX_AGE is not set in .env file");
 
     let mut config = Config::new(Environment::Development);
     config.set_address(&host).unwrap();
@@ -61,7 +62,7 @@ fn rocket_web_api() -> rocket::Rocket {
     origin.exact = Some(_origin);
 
     let cors_options = rocket_cors::CorsOptions::default()
-        .max_age(Some(30 * 24 * 60 * 60))
+        .max_age(Some(usize::from_str(&max_age).unwrap_or_else(|_| 3600)))
         .allowed_origins(AllowedOrigins::Some(origin))
         .send_wildcard(false)
         .allow_credentials(true);
